@@ -1,0 +1,22 @@
+# Secrets & credentials
+.env
+*.json
+!package.json
+
+# Runner config (contains token)
+gitlab-runner/config/
+
+# Audiobookshelf data
+audiobookshelf/config/
+audiobookshelf/metadata/
+audiobookshelf/podcasts/
+
+# Burgen
+burgen/.venv/
+burgen/data/
+burgen/site/
+
+# OS / editor
+.DS_Store
+*.swp
+*~

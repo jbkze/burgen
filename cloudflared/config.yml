@@ -1,0 +1,9 @@
+tunnel: 597e6c96-5861-48d2-8f5e-e11cfced1db3
+credentials-file: /home/nonroot/.cloudflared/597e6c96-5861-48d2-8f5e-e11cfced1db3.json
+
+ingress:
+  - hostname: burgen.jbkze.de
+    service: http://burgen:8000
+  - hostname: abs.jbkze.de
+    service: http://audiobookshelf:80
+  - service: http_status:404
