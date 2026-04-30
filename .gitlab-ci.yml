@@ -7,11 +7,10 @@ deploy:
     - pi
   image: docker:cli
   before_script:
-    - apk add --no-cache git docker-compose
-    - git config --global --add safe.directory /infrastructure
+    - apk add --no-cache rsync docker-compose
   script:
+    - rsync -a --delete --exclude='.git' --exclude='audiobookshelf/config' --exclude='audiobookshelf/metadata' --exclude='audiobookshelf/podcasts' --exclude='burgen/.venv' --exclude='burgen/data' --exclude='burgen/site' --exclude='gitlab-runner' "$CI_PROJECT_DIR/" /infrastructure/
     - cd /infrastructure
-    - git pull origin main
     - docker compose pull --ignore-buildable
     - docker compose build
     - docker compose up -d --remove-orphans
