@@ -8,6 +8,7 @@ deploy:
   image: docker:cli
   before_script:
     - apk add --no-cache git docker-compose
+    - git config --global --add safe.directory /infrastructure
   script:
     - cd /infrastructure
     - git pull origin main
