@@ -3,9 +3,6 @@
 *.json
 !package.json
 
-# Runner config (contains token)
-gitlab-runner/config/
-
 # Audiobookshelf data
 audiobookshelf/config/
 audiobookshelf/metadata/
