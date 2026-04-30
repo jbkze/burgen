@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Burgen in Deutschland</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root {
+  --bg: oklch(97% 0.006 55);
+  --surface: oklch(100% 0.003 55);
+  --accent: oklch(52% 0.14 28);
+  --accent-light: oklch(92% 0.04 28);
+  --accent-hover: oklch(45% 0.16 28);
+  --text: oklch(18% 0.01 55);
+  --text-secondary: oklch(42% 0.02 55);
+  --text-tertiary: oklch(58% 0.015 55);
+  --border: oklch(88% 0.01 55);
+  --border-light: oklch(93% 0.005 55);
+  --green: oklch(55% 0.15 145);
+  --green-light: oklch(92% 0.04 145);
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px;
+  --space-xl: 48px; --space-2xl: 64px; --max-w: 1120px;
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+.mode-bar { display: flex; justify-content: center; gap: var(--space-xs); padding: var(--space-md); background: var(--surface); border-bottom: 1px solid var(--border-light); position: sticky; top: 0; z-index: 900; }
+.mode-btn { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; padding: 0.5rem 1.25rem; border: 1.5px solid var(--border); border-radius: 99px; background: none; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease-out; }
+.mode-btn:hover { border-color: var(--accent); color: var(--accent); }
+.mode-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.hero { position: relative; background: var(--surface); }
+.hero__map { height: clamp(320px, 50vh, 520px); width: 100%; }
+.hero__overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: var(--space-xl) var(--space-lg) var(--space-lg); background: linear-gradient(to top, var(--surface) 20%, oklch(100% 0 0 / 0)); pointer-events: none; }
+.hero__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw + 0.5rem, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.hero__title span { color: var(--accent); }
+.hero__subtitle { font-size: 1rem; color: var(--text-secondary); margin-top: var(--space-sm); }
+
+.controls { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg) var(--space-lg) 0; display: flex; gap: var(--space-md); flex-wrap: wrap; align-items: center; }
+.controls input, .controls select { padding: 0.6rem 0.9rem; font-size: 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); transition: border-color 0.15s ease-out; }
+.controls input:focus, .controls select:focus { outline: none; border-color: var(--accent); }
+.controls input::placeholder { color: var(--text-tertiary); }
+.controls__search { flex: 1; min-width: 180px; }
+.controls__count { font-size: 0.85rem; color: var(--text-tertiary); margin-left: auto; }
+
+.planner { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg); }
+.planner__form { display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--space-md); align-items: end; }
+.planner__field label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-xs); }
+.planner__field input, .planner__field select { width: 100%; padding: 0.65rem 0.9rem; font-size: 0.95rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); }
+.planner__field input:focus, .planner__field select:focus { outline: none; border-color: var(--accent); }
+.planner__go { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; padding: 0.65rem 1.5rem; border: none; border-radius: 8px; background: var(--accent); color: white; cursor: pointer; transition: background 0.15s ease-out; white-space: nowrap; }
+.planner__go:hover { background: var(--accent-hover); }
+.planner__filters { display: flex; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; }
+.planner__filters select { padding: 0.5rem 0.75rem; font-size: 0.85rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); }
+.planner__status { padding: var(--space-lg) 0; color: var(--text-tertiary); font-size: 0.95rem; }
+.planner__status.error { color: oklch(55% 0.2 25); }
+
+.stream { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg); }
+
+.result { display: grid; grid-template-columns: 80px 1fr auto; gap: var(--space-md); align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
+.result:hover { opacity: 0.75; }
+.result__thumb { width: 80px; height: 60px; border-radius: 4px; overflow: hidden; background: var(--border-light); }
+.result__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.result__info h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+.result__location { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.result__meta { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 2px; }
+.result__travel { text-align: right; flex-shrink: 0; }
+.result__duration { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.result__duration small { font-size: 0.7rem; font-weight: 400; color: var(--text-tertiary); }
+.result__lines { font-size: 0.7rem; color: var(--text-tertiary); }
+.result__hikes { display: inline-flex; align-items: center; gap: 3px; font-size: 0.75rem; color: var(--green); font-weight: 600; }
+
+.entry--featured { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-lg); padding: var(--space-xl) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
+.entry--featured:hover { opacity: 0.85; }
+.entry--featured .entry__img { border-radius: 6px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--border-light); }
+.entry--featured .entry__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entry--featured .entry__body { display: flex; flex-direction: column; justify-content: center; gap: var(--space-sm); }
+.entry__name--lg { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2rem); line-height: 1.15; letter-spacing: -0.01em; }
+.entry__teaser { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; max-width: 48ch; }
+.entry--compact { display: flex; gap: var(--space-md); align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
+.entry--compact:hover { opacity: 0.75; }
+.entry__thumb { width: 80px; height: 60px; border-radius: 4px; overflow: hidden; flex-shrink: 0; background: var(--border-light); }
+.entry__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entry__name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; line-height: 1.3; }
+.entry__location { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.entry__meta-line { font-size: 0.8rem; color: var(--text-tertiary); }
+.entry__tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-xs); }
+.tag { background: var(--accent-light); color: var(--accent); padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em; }
+.tag--hike { background: var(--green-light); color: var(--green); }
+.no-results { text-align: center; padding: var(--space-2xl) var(--space-lg); color: var(--text-tertiary); font-size: 1.1rem; display: none; }
+
+.detail-view { display: none; }
+.detail-view.active { display: block; }
+.view.hidden { display: none; }
+.detail__nav { max-width: var(--max-w); margin: 0 auto; padding: var(--space-md) var(--space-lg); }
+.detail__back { background: none; border: 1.5px solid var(--border); color: var(--text); padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-family: var(--font-body); transition: border-color 0.15s ease-out; }
+.detail__back:hover { border-color: var(--accent); color: var(--accent); }
+.detail__header { max-width: var(--max-w); margin: 0 auto; padding: var(--space-xl) var(--space-lg) var(--space-lg); }
+.detail__location { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: var(--space-sm); }
+.detail__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 4vw + 0.5rem, 3rem); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.detail__lead { font-size: 1.1rem; color: var(--text-secondary); margin-top: var(--space-md); max-width: 65ch; line-height: 1.7; }
+.detail__gallery { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--space-lg); display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: var(--space-sm); scrollbar-width: thin; }
+.detail__gallery a { flex-shrink: 0; }
+.detail__gallery img { height: 280px; border-radius: 6px; display: block; }
+.detail__content { max-width: var(--max-w); margin: 0 auto; padding: var(--space-xl) var(--space-lg); display: grid; grid-template-columns: 1fr 320px; gap: var(--space-2xl); }
+.detail__section h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 2px solid var(--accent); display: inline-block; }
+.detail__section p { color: var(--text-secondary); line-height: 1.75; max-width: 65ch; margin-bottom: var(--space-md); }
+.detail__section + .detail__section { margin-top: var(--space-xl); }
+.detail__map { height: 220px; border-radius: 8px; margin-bottom: var(--space-lg); border: 1px solid var(--border); }
+.detail__meta { font-size: 0.85rem; line-height: 1.8; }
+.detail__meta dt { color: var(--text-tertiary); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; margin-top: var(--space-md); }
+.detail__meta dt:first-child { margin-top: 0; }
+.detail__meta dd { color: var(--text); font-weight: 500; }
+.detail__hike-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green); padding: 6px 14px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; margin-top: var(--space-lg); }
+.detail__source { display: inline-block; margin-top: var(--space-lg); color: var(--accent); font-size: 0.8rem; font-weight: 600; text-decoration: none; }
+.detail__source:hover { text-decoration: underline; }
+.loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .planner__form { grid-template-columns: 1fr 1fr; }
+  .entry--featured { grid-template-columns: 1fr; gap: var(--space-md); padding: var(--space-lg) 0; }
+  .detail__content { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .detail__gallery img { height: 200px; }
+  .result { grid-template-columns: 1fr auto; }
+  .result__thumb { display: none; }
+}
+@media (max-width: 480px) {
+  .controls { flex-direction: column; }
+  .controls__count { margin-left: 0; }
+  .hero__map { height: 280px; }
+  .planner__form { grid-template-columns: 1fr; }
+}
+.leaflet-popup-content-wrapper { border-radius: 6px; font-family: var(--font-display); font-weight: 700; }
+</style>
+</head>
+<body>
+<nav class="mode-bar">
+  <button class="mode-btn active" data-mode="browse">Stöbern</button>
+  <button class="mode-btn" data-mode="trip">Reiseplaner</button>
+</nav>
+
+<div class="view" id="browse-view">
+  <div class="hero">
+    <div class="hero__map" id="map-browse"></div>
+    <div class="hero__overlay">
+      <h1 class="hero__title">Burgen in <span>Deutschland</span></h1>
+      <p class="hero__subtitle" id="browse-subtitle"></p>
+    </div>
+  </div>
+  <div class="controls" id="browse-controls">
+    <input class="controls__search" type="text" id="search" placeholder="Burg suchen...">
+    <select id="filter-state"><option value="">Alle Bundesländer</option></select>
+    <select id="filter-erhaltung"><option value="">Erhaltung</option></select>
+    <select id="filter-typ"><option value="">Burgtyp</option></select>
+    <span class="controls__count"><span id="count">0</span> Burgen</span>
+  </div>
+  <div class="stream" id="browse-stream"></div>
+  <p class="no-results" id="no-results-browse">Keine Burgen gefunden.</p>
+</div>
+
+<div class="view hidden" id="trip-view">
+  <div class="hero">
+    <div class="hero__map" id="map-trip"></div>
+    <div class="hero__overlay">
+      <h1 class="hero__title">Burgen<span>planer</span></h1>
+      <p class="hero__subtitle">Finde Burgen in deiner Reichweite</p>
+    </div>
+  </div>
+  <div class="planner">
+    <div class="planner__form" id="trip-form">
+      <div class="planner__field">
+        <label for="origin">Startpunkt</label>
+        <input type="text" id="origin" placeholder="z.B. Leipzig Hbf">
+      </div>
+      <div class="planner__field">
+        <label for="mode">Verkehrsmittel</label>
+        <select id="mode">
+          <option value="train">Zug</option>
+          <option value="car">Auto</option>
+        </select>
+      </div>
+      <div class="planner__field">
+        <label for="max-time">Max. Fahrzeit</label>
+        <select id="max-time">
+          <option value="60">1 Stunde</option>
+          <option value="120" selected>2 Stunden</option>
+          <option value="180">3 Stunden</option>
+          <option value="240">4 Stunden</option>
+        </select>
+      </div>
+      <button class="planner__go" onclick="runTrip()">Suchen</button>
+    </div>
+    <div class="planner__filters">
+      <select id="trip-erhaltung"><option value="">Erhaltung</option></select>
+      <select id="trip-typ"><option value="">Burgtyp</option></select>
+      <select id="trip-hikes">
+        <option value="">Wanderbarkeit</option>
+        <option value="10">10+ Wanderungen</option>
+        <option value="50">50+ Wanderungen</option>
+        <option value="200">200+ Wanderungen</option>
+      </select>
+    </div>
+    <div class="planner__status" id="trip-status"></div>
+    <div id="trip-results"></div>
+  </div>
+</div>
+
+<div class="detail-view" id="detail-view"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const API = '/api';
+let browseMap, tripMap, allCastles = [], currentMode = 'browse';
+const browseMarkers = L.layerGroup(), tripMarkers = L.layerGroup();
+
+function tileLayer() {
+  return L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}@2x.png', { attribution: '&copy; OSM &copy; CARTO', maxZoom: 18 });
+}
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function init() {
+  const [cr, fr] = await Promise.all([fetch(`${API}/castles`).then(r=>r.json()), fetch(`${API}/filters`).then(r=>r.json())]);
+  allCastles = cr.castles;
+  populateFilters(fr);
+  browseMap = L.map('map-browse', {zoomControl:false}).setView([51,10.4],6);
+  L.control.zoom({position:'topright'}).addTo(browseMap); tileLayer().addTo(browseMap); browseMarkers.addTo(browseMap);
+  tripMap = L.map('map-trip', {zoomControl:false}).setView([51,10.4],6);
+  L.control.zoom({position:'topright'}).addTo(tripMap); tileLayer().addTo(tripMap); tripMarkers.addTo(tripMap);
+  renderBrowse(allCastles);
+  document.getElementById('browse-subtitle').textContent = allCastles.length + ' Burgen aus der EBIDAT-Datenbank';
+}
+
+function populateFilters(f) {
+  [['filter-state'],['filter-erhaltung','trip-erhaltung'],['filter-typ','trip-typ']].forEach(([browse,trip],i) => {
+    const data = [f.states, f.erhaltung, f.types][i];
+    [browse,trip].filter(Boolean).forEach(id => { const el=document.getElementById(id); if(!el)return; data.forEach(s => { const o=document.createElement('option'); o.value=s.toLowerCase(); o.textContent=s; el.appendChild(o); }); });
+  });
+}
+
+function renderBrowse(list) {
+  const stream = document.getElementById('browse-stream'), noRes = document.getElementById('no-results-browse');
+  document.getElementById('count').textContent = list.length;
+  browseMarkers.clearLayers(); stream.innerHTML = '';
+  if (!list.length) { noRes.style.display='block'; return; }
+  noRes.style.display='none';
+  list.forEach((c,i) => {
+    if (c.lat&&c.lon) { const m=L.circleMarker([c.lat,c.lon],{radius:5,fillColor:'#b54b2a',color:'#fff',weight:1.5,fillOpacity:0.9}); m.bindPopup(`<b>${c.name}</b><br><small>${c.state}</small>`); m.on('click',()=>openDetail(c.id)); browseMarkers.addLayer(m); }
+    stream.innerHTML += (i%5===0&&c.image) ? buildFeatured(c) : buildCompact(c);
+  });
+  stream.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', ()=>openDetail(+el.dataset.id)));
+}
+
+function buildFeatured(c) {
+  const img = c.image ? `<div class="entry__img"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>` : '';
+  const hike = c.hike_count>0 ? `<span class="tag tag--hike">${c.hike_count} Wanderungen</span>` : '';
+  const tags = [c.typ,c.datierung].filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  return `<article class="entry--featured" data-id="${c.id}" role="button" tabindex="0">${img}<div class="entry__body"><p class="entry__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3 class="entry__name--lg">${esc(c.name)}</h3><p class="entry__teaser">${esc((c.kurzansprache||'').substring(0,220))}</p><div class="entry__tags">${tags}${hike}</div></div></article>`;
+}
+
+function buildCompact(c) {
+  const thumb = c.image ? `<div class="entry__thumb"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>` : '';
+  const meta = [c.typ,c.datierung].filter(Boolean).join(' · ');
+  const hike = c.hike_count>0 ? ` · ${c.hike_count} Wanderungen` : '';
+  return `<article class="entry--compact" data-id="${c.id}" role="button" tabindex="0">${thumb}<div class="entry__body"><p class="entry__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3 class="entry__name">${esc(c.name)}</h3><p class="entry__meta-line">${esc(meta)}${hike}</p></div></article>`;
+}
+
+function filterBrowse() {
+  const q=document.getElementById('search').value.toLowerCase(), st=document.getElementById('filter-state').value, er=document.getElementById('filter-erhaltung').value, ty=document.getElementById('filter-typ').value;
+  renderBrowse(allCastles.filter(c => {
+    if (q && !c.name.toLowerCase().includes(q)) return false;
+    if (st && c.state.toLowerCase()!==st) return false;
+    if (er && !(c.erhaltung||'').toLowerCase().includes(er)) return false;
+    if (ty && !(c.typ||'').toLowerCase().includes(ty)) return false;
+    return true;
+  }));
+}
+
+async function runTrip() {
+  const origin=document.getElementById('origin').value.trim();
+  if (!origin) return;
+  const mode=document.getElementById('mode').value, maxTime=document.getElementById('max-time').value;
+  const er=document.getElementById('trip-erhaltung').value, ty=document.getElementById('trip-typ').value, mh=document.getElementById('trip-hikes').value;
+  const status=document.getElementById('trip-status'), results=document.getElementById('trip-results');
+  status.className='planner__status'; status.innerHTML=`<span class="loading-spinner"></span> Suche Verbindungen von ${esc(origin)}...`; results.innerHTML=''; tripMarkers.clearLayers();
+  const p=new URLSearchParams({origin,mode,max_minutes:maxTime}); if(er)p.set('erhaltung',er); if(ty)p.set('typ',ty); if(mh)p.set('min_hikes',mh);
+  try {
+    const data = await fetch(`${API}/plan?${p}`).then(r=>r.json());
+    if (data.error) { status.className='planner__status error'; status.textContent=data.error; return; }
+    status.textContent=`${data.count} erreichbare Burgen von ${data.origin.name} (max. ${data.max_minutes} min)`;
+    if (data.origin.lat&&data.origin.lon) {
+      const om=L.marker([data.origin.lat,data.origin.lon],{icon:L.divIcon({className:'',html:'<div style="width:14px;height:14px;background:oklch(50% 0.2 260);border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]})}); om.bindPopup(`<b>${data.origin.name}</b><br><small>Startpunkt</small>`); tripMarkers.addLayer(om);
+    }
+    data.castles.forEach(c => {
+      if (c.lat&&c.lon) { const m=L.circleMarker([c.lat,c.lon],{radius:6,fillColor:'#b54b2a',color:'#fff',weight:1.5,fillOpacity:0.9}); m.bindPopup(`<b>${c.name}</b><br>${c.travel?.duration_min?c.travel.duration_min+' min':''}`); m.on('click',()=>openDetail(c.id)); tripMarkers.addLayer(m); }
+      results.innerHTML += buildResult(c,mode);
+    });
+    results.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click',()=>openDetail(+el.dataset.id)));
+    if (data.origin.lat&&data.origin.lon) { const b=L.latLngBounds([[data.origin.lat,data.origin.lon]]); data.castles.forEach(c=>{if(c.lat&&c.lon)b.extend([c.lat,c.lon]);}); tripMap.fitBounds(b,{padding:[40,40]}); }
+  } catch(e) { status.className='planner__status error'; status.textContent='Fehler bei der Suche. Bitte nochmal versuchen.'; }
+}
+
+function buildResult(c,mode) {
+  const thumb=c.image?`<div class="result__thumb"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>`:'<div class="result__thumb"></div>';
+  const dur=c.travel?.duration_min; const durText=dur!=null?`${dur}<small> min</small>`:'?';
+  const lines=(c.travel?.lines||[]).join(' → '); const changes=c.travel?.changes!=null?`${c.travel.changes} Umstiege`:'';
+  const info=mode==='train'?(lines?`${lines}<br>${changes}`:changes):`${c.travel?.distance_km||c.distance_km||''} km`;
+  const hike=c.hike_count>0?`<span class="result__hikes">🥾 ${c.hike_count}</span>`:'';
+  return `<div class="result" data-id="${c.id}" role="button" tabindex="0">${thumb}<div class="result__info"><p class="result__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3>${esc(c.name)}</h3><p class="result__meta">${esc(c.typ||'')} ${hike}</p></div><div class="result__travel"><div class="result__duration">${durText}</div><div class="result__lines">${info}</div></div></div>`;
+}
+
+async function openDetail(id) {
+  const c = await fetch(`${API}/castles/${id}`).then(r=>r.json()); if (c.error) return;
+  const meta=c.meta||{}, sections=c.sections||{}, komoot=c.komoot||{}, station=c.station||{};
+  const loc=[meta['Stadt / Gemeinde'],meta['Kreis'],meta['Bundesland']].filter(Boolean).join(', ');
+  let metaHtml=''; ['Bundesland','Kreis','Stadt / Gemeinde','Typ','Klassifizierung','Höhenlage','Datierung-Beginn','Datierung-Ende','Erhaltung - Heutiger Zustand'].forEach(k=>{const v=meta[k];if(v)metaHtml+=`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`;});
+  if(station.station_name) metaHtml+=`<dt>Nächster Bahnhof</dt><dd>${esc(station.station_name)} (${station.station_distance_m}m)</dd>`;
+  let sectHtml=''; ['Geschichte','Bauentwicklung','Baubeschreibung','Arch-Untersuchung/Funde'].forEach(t=>{const txt=sections[t];if(txt){const ps=txt.split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('');sectHtml+=`<section class="detail__section"><h3>${esc(t)}</h3>${ps}</section>`;}});
+  let imgHtml=''; if(c.images?.length){imgHtml='<div class="detail__gallery">'+c.images.map(img=>`<a href="${img.large}" target="_blank" rel="noopener"><img src="${img.thumb}" alt="${esc(img.alt||'')}" loading="lazy"></a>`).join('')+'</div>';}
+  const mapHtml=c.lat?`<div class="detail__map" id="dmap-${c.id}" data-lat="${c.lat}" data-lon="${c.lon}"></div>`:'';
+  const hikeBadge=komoot.hike_count>0?`<div class="detail__hike-badge">🥾 ${komoot.hike_count} Wanderungen${komoot.avg_rating?' · ★ '+komoot.avg_rating:''}</div>`:'';
+
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.querySelector('.mode-bar').classList.add('hidden');
+  const dv=document.getElementById('detail-view'); dv.classList.add('active');
+  dv.innerHTML=`<nav class="detail__nav"><button class="detail__back" onclick="closeDetail()">← Zurück</button></nav><header class="detail__header"><p class="detail__location">${esc(loc)}</p><h2 class="detail__title">${esc(c.name)}</h2><p class="detail__lead">${esc(meta.Kurzansprache||'')}</p>${hikeBadge}</header>${imgHtml}<div class="detail__content"><div class="detail__main">${sectHtml}</div><aside class="detail__sidebar">${mapHtml}<dl class="detail__meta">${metaHtml}</dl><a class="detail__source" href="${esc(c.url)}" target="_blank" rel="noopener">Quelle: EBIDAT ↗</a></aside></div>`;
+  if(c.lat){setTimeout(()=>{const el=document.getElementById(`dmap-${c.id}`);if(el){const dm=L.map(el,{zoomControl:false}).setView([c.lat,c.lon],13);tileLayer().addTo(dm);L.circleMarker([c.lat,c.lon],{radius:8,fillColor:'#b54b2a',color:'#fff',weight:2,fillOpacity:1}).addTo(dm);}},50);}
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('active'); document.getElementById('detail-view').innerHTML='';
+  document.querySelector('.mode-bar').classList.remove('hidden');
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById(currentMode==='browse'?'browse-view':'trip-view').classList.remove('hidden');
+  setTimeout(()=>{(currentMode==='browse'?browseMap:tripMap).invalidateSize();},50);
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  currentMode=btn.dataset.mode; document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById(currentMode==='browse'?'browse-view':'trip-view').classList.remove('hidden');
+  setTimeout(()=>{(currentMode==='browse'?browseMap:tripMap).invalidateSize();},50);
+}));
+['search','filter-state','filter-erhaltung','filter-typ'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',filterBrowse));
+init();
+</script>
+</body>
+</html>

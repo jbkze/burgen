@@ -2,6 +2,7 @@
 .env
 *.json
 !package.json
+!burgen/data/*.json
 
 # Audiobookshelf data
 audiobookshelf/config/
@@ -10,8 +11,6 @@ audiobookshelf/podcasts/
 
 # Burgen
 burgen/.venv/
-burgen/data/
-burgen/site/
 
 # OS / editor
 .DS_Store
