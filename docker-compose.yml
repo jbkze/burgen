@@ -10,7 +10,7 @@ services:
       - audiobookshelf
 
   burgen:
-    image: registry.gitlab.com/jbkze/jbkze/burgen:latest
+    image: ghcr.io/jbkze/jbkze_website/burgen:latest
     restart: unless-stopped
 
   audiobookshelf:
