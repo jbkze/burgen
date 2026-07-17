@@ -16,6 +16,8 @@ See PRODUCT.md for product goals and design principles.
 - `data/castles.json` — raw scrape output (all castles, committed, not deployed)
 - Trip planner calls external APIs directly from the browser:
   - `https://v6.db.transport.rest` (HAFAS/DB) — station lookup and train journeys
+  - `https://api.transitous.org` (MOTIS) — fallback geocoding + train routing when HAFAS is down (it often is)
+  - `https://nominatim.openstreetmap.org` — last-resort geocoding for the origin
   - `https://router.project-osrm.org` — driving time/distance matrix (also used to pre-filter train candidates before the slower HAFAS calls)
 - Each castle's detail view deep-links to Google Maps (`google.com/maps/search/?api=1&query=<name, town, state>`) for reviews and directions — no API key needed.
 

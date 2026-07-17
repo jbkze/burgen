@@ -506,7 +506,7 @@ footer a:hover { color: var(--amber); }
 
 <footer>
   Daten: <a href="https://www.ebidat.de" target="_blank" rel="noopener">EBIDAT — Europäisches Burgeninstitut</a>
-  · Wanderungen: Komoot · Verbindungen: Deutsche Bahn / OSRM
+  · Wanderungen: Komoot · Verbindungen: Deutsche Bahn / Transitous / OSRM
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -673,11 +673,40 @@ async function resolveStation(name) {
   } catch (e) { return null; }
 }
 
-// HAFAS first (also yields the station id needed for train journeys);
-// falls back to Nominatim so car routing still works when HAFAS is down.
+// Transitous (MOTIS) is the fallback transit router when HAFAS is down.
+const TRANSITOUS = 'https://api.transitous.org/api/v1';
+
+async function transitousGeocode(name) {
+  try {
+    const r = await fetch(`${TRANSITOUS}/geocode?text=${encodeURIComponent(name)}&language=de`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!Array.isArray(d) || !d.length) return null;
+    const s = d.find(x => x.type === 'STOP') || d[0];
+    if (s.lat == null) return null;
+    return { id: null, name: s.name, lat: s.lat, lon: s.lon };
+  } catch (e) { return null; }
+}
+
+async function transitousJourney(fromLat, fromLon, toLat, toLon) {
+  try {
+    const r = await fetch(`${TRANSITOUS}/plan?fromPlace=${fromLat},${fromLon}&toPlace=${toLat},${toLon}&numItineraries=1`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    const it = (d.itineraries || [])[0];
+    if (!it || !it.duration) return null;
+    const lines = it.legs.filter(l => l.routeShortName).map(l => l.routeShortName.replace(/\s*\(.*\)$/, ''));
+    return { duration_min: Math.round(it.duration / 60), changes: it.transfers ?? Math.max(0, lines.length - 1), lines };
+  } catch (e) { return null; }
+}
+
+// HAFAS first (its station id gives the best train journeys), then
+// Transitous stops, then Nominatim — so the planner degrades gracefully.
 async function geocode(name) {
   const st = await resolveStation(name);
   if (st && st.lat != null) return st;
+  const ts = await transitousGeocode(name);
+  if (ts) return ts;
   try {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=de&q=${encodeURIComponent(name)}`);
     if (!r.ok) return null;
@@ -754,8 +783,12 @@ async function planTrain(origin, cands, maxMin) {
   } catch (e) {}
   if (!top) top = [...withStation].sort((a, b) =>
     haversineKm(origin.lat, origin.lon, a.lat, a.lon) - haversineKm(origin.lat, origin.lon, b.lat, b.lon)).slice(0, 15);
+  // With a HAFAS origin id use HAFAS journeys; otherwise route via Transitous coordinates.
+  const journey = origin.id
+    ? c => getJourney(origin.id, c.station.station_id)
+    : c => transitousJourney(origin.lat, origin.lon, c.station.station_lat ?? c.lat, c.station.station_lon ?? c.lon);
   const results = await mapLimit(top, 5, async c => {
-    const j = await getJourney(origin.id, c.station.station_id);
+    const j = await journey(c);
     if (!j || j.duration_min > maxMin) return null;
     const s = summarize(c);
     s.travel = j;
@@ -803,11 +836,6 @@ async function runTrip(ev) {
   try {
     const o = await geocode(origin);
     if (!o) { status.className = 'planner__status error'; status.textContent = `„${origin}" wurde nicht gefunden — versuch es mit einem Bahnhofs- oder Ortsnamen.`; return; }
-    if (mode === 'train' && !o.id) {
-      status.className = 'planner__status error';
-      status.textContent = 'Die Bahn-Auskunft ist gerade nicht erreichbar — probier es später nochmal oder wechsle auf Auto.';
-      return;
-    }
     const cands = castles.filter(c => {
       if (c.lat == null) return false;
       const m = c.meta || {};
