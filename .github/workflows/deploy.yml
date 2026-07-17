@@ -1,36 +1,31 @@
-name: Deploy
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  build-burgen:
-    runs-on: [self-hosted, pi]
-    permissions:
-      contents: read
-      packages: write
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Build and push burgen image
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}/burgen:latest burgen/
-          docker push ghcr.io/${{ github.repository }}/burgen:latest
-
-  deploy:
-    needs: build-burgen
-    runs-on: [self-hosted, pi]
-    permissions:
-      contents: read
-      packages: read
-    steps:
-      - name: Update host checkout and restart stack
-        run: |
-          cd /home/wilcomb/infrastructure
-          git pull "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" main
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker compose pull
-          docker compose up -d --remove-orphans
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

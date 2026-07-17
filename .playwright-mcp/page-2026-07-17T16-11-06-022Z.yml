@@ -1,0 +1,715 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - button "Stöbern" [ref=e3] [cursor=pointer]
+    - button "Reiseplaner" [ref=e4] [cursor=pointer]
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic:
+          - generic [ref=e96]:
+            - button "Zoom in" [ref=e97] [cursor=pointer]: +
+            - button "Zoom out" [ref=e98] [cursor=pointer]: −
+          - generic [ref=e99]:
+            - link "Leaflet" [ref=e100] [cursor=pointer]:
+              - /url: https://leafletjs.com
+            - text: "| © OSM © CARTO"
+      - generic:
+        - heading "Burgen in Deutschland" [level=1]
+        - paragraph: 100 Burgen aus der EBIDAT-Datenbank
+    - generic [ref=e105]:
+      - textbox "Burg suchen..." [ref=e106]
+      - combobox [ref=e107]:
+        - option "Alle Bundesländer" [selected]
+        - option "Baden-W�rttemberg"
+        - option "Bayern"
+        - option "Hamburg"
+        - option "Hessen"
+        - option "Mecklenburg-Vorpommern"
+        - option "Niedersachsen"
+        - option "Nordrhein-Westfalen"
+        - option "Rheinland-Pfalz"
+      - combobox [ref=e108]:
+        - option "Erhaltung" [selected]
+        - option "Bedeutende Reste"
+        - option "Fundamente"
+        - option "Geringe Reste"
+        - option "Keine Reste"
+        - option "Stark modern �berformt"
+        - option "Weitgehend erhalten"
+        - option "�berbaut"
+      - combobox [ref=e109]:
+        - option "Burgtyp" [selected]
+        - option "Abgegangene Burgstelle"
+        - option "Abgegangene BurgstelleBurg allgemein"
+        - option "Abgegangene BurgstelleMotte-fraglich"
+        - option "Abgegangene BurgstelleNicht lokalisierte Anlage"
+        - option "Abgegangene BurgstelleNiederungsburg"
+        - option "Abgegangene BurgstelleRingwall"
+        - option "Abgegangene BurgstelleTurmburg"
+        - option "Abgegangene BurgstelleWasserburg"
+        - option "Abschnittsburg"
+        - option "Burghaus"
+        - option "BurghausWohnturm"
+        - option "Burgstelle"
+        - option "BurgstelleAbschnittsburg"
+        - option "BurgstelleMotte"
+        - option "BurgstelleNiederungsburg"
+        - option "BurgstelleRingmauerburg"
+        - option "BurgstelleWallanlage"
+        - option "BurgstelleWasserburg"
+        - option "Felsenburg"
+        - option "KastellburgRingmauerburg"
+        - option "Kompaktanlage"
+        - option "Motte"
+        - option "Motte-fraglichAbgegangene Burgstelle"
+        - option "Motte-fraglichBurgstelle"
+        - option "Motte-fraglichErdwerk"
+        - option "MotteBodendenkmal"
+        - option "MotteRingmauerburg"
+        - option "Niederungsburg"
+        - option "NiederungsburgRandhausanlage"
+        - option "NiederungsburgRingmauerburg"
+        - option "NiederungsburgWasserburg"
+        - option "Randhausanlage"
+        - option "Ringmauerburg"
+        - option "RingwallBodendenkmal"
+        - option "RingwallNiederungsburg"
+        - option "Turmburg"
+        - option "Wallanlage"
+        - option "Wasserburg"
+        - option "WasserburgAbgegangene Burgstelle"
+        - option "WasserburgMotte-fraglich"
+        - option "WasserburgRingmauerburg"
+        - option "WasserburgTurmburg"
+        - option "WasserburgWohnturm"
+        - option "WohnturmRandhausanlage"
+      - generic [ref=e110]: 100 Burgen
+    - generic [ref=e111]:
+      - button "Aach, Alter Turm Konstanz, Baden-W�rttemberg Aach, Alter Turm Die Erbauer der Burg sind in der historischen Überlieferung nicht zu greifen. Möglicherweise saßen hier im 12. Jh. die Edelherren von Aach. Turmburg 1.H.11.Jh. 41 Wanderungen" [ref=e112] [cursor=pointer]:
+        - img "Aach, Alter Turm" [ref=e114]
+        - generic [ref=e115]:
+          - paragraph [ref=e116]: Konstanz, Baden-W�rttemberg
+          - heading "Aach, Alter Turm" [level=3] [ref=e117]
+          - paragraph [ref=e118]: Die Erbauer der Burg sind in der historischen Überlieferung nicht zu greifen. Möglicherweise saßen hier im 12. Jh. die Edelherren von Aach.
+          - generic [ref=e119]:
+            - generic [ref=e120]: Turmburg
+            - generic [ref=e121]: 1.H.11.Jh.
+            - generic [ref=e122]: 41 Wanderungen
+      - button [ref=e123] [cursor=pointer]:
+        - generic [ref=e124]:
+          - paragraph [ref=e125]: Konstanz, Baden-W�rttemberg
+          - heading "Aach, Schloss" [level=3] [ref=e126]
+          - paragraph [ref=e127]: Abgegangene BurgstelleNicht lokalisierte Anlage · 1.H.14.Jh.
+      - button [ref=e128] [cursor=pointer]:
+        - img "Aachener Schanze" [ref=e130]
+        - generic [ref=e131]:
+          - paragraph [ref=e132]: Rheingau-Taunus-Kreis, Hessen
+          - heading "Aachener Schanze" [level=3] [ref=e133]
+          - paragraph [ref=e134]: Abschnittsburg · 2.H.13.Jh. · 7 Wanderungen
+      - button [ref=e135] [cursor=pointer]:
+        - img "Aalen, Burgstall" [ref=e137]
+        - generic [ref=e138]:
+          - paragraph [ref=e139]: Ostalbkreis, Baden-W�rttemberg
+          - heading "Aalen, Burgstall" [level=3] [ref=e140]
+          - paragraph [ref=e141]: Abschnittsburg · 1.H.12.Jh. · 29 Wanderungen
+      - button [ref=e142] [cursor=pointer]:
+        - img "Abbenburg" [ref=e144]
+        - generic [ref=e145]:
+          - paragraph [ref=e146]: H�xter, Nordrhein-Westfalen
+          - heading "Abbenburg" [level=3] [ref=e147]
+          - paragraph [ref=e148]: Wasserburg · 1.H.14.Jh.
+      - button [ref=e149] [cursor=pointer]:
+        - generic [ref=e150]:
+          - paragraph [ref=e151]: G�tersloh, Nordrhein-Westfalen
+          - heading "Abdinghof" [level=3] [ref=e152]
+          - paragraph [ref=e153]: Abgegangene BurgstelleNicht lokalisierte Anlage · 2.H.13.Jh. · 20 Wanderungen
+      - button [ref=e154] [cursor=pointer]:
+        - img "Abenberg" [ref=e156]
+        - generic [ref=e157]:
+          - paragraph [ref=e158]: Roth, Bayern
+          - heading "Abenberg" [level=3] [ref=e159]
+          - paragraph [ref=e160]: Ringmauerburg · 1.H.11.Jh. · 72 Wanderungen
+      - button [ref=e161] [cursor=pointer]:
+        - generic [ref=e162]:
+          - paragraph [ref=e163]: D�ren, Nordrhein-Westfalen
+          - heading "Abenden" [level=3] [ref=e164]
+          - paragraph [ref=e165]: Motte-fraglichAbgegangene Burgstelle · unbekannt · 39 Wanderungen
+      - button [ref=e166] [cursor=pointer]:
+        - generic [ref=e167]:
+          - paragraph [ref=e168]: Worms-Stadt, Rheinland-Pfalz
+          - heading "Abenheim" [level=3] [ref=e169]
+          - paragraph [ref=e170]: Abgegangene BurgstelleBurg allgemein · 2.H.14.Jh. · 27 Wanderungen
+      - button [ref=e171] [cursor=pointer]:
+        - generic [ref=e172]:
+          - paragraph [ref=e173]: Wei�enburg-Gunzenhausen, Bayern
+          - heading "Absberg, Motte" [level=3] [ref=e174]
+          - paragraph [ref=e175]: BurgstelleMotte · 1.H.13.Jh. · 32 Wanderungen
+      - button "Absenreute Ravensburg, Baden-W�rttemberg Absenreute Es kann sich nach der Größe wohl nur um einen Ministerialensitz handeln. Schriftliche Quellen zur Burg sind nicht überliefert. Burgstelle 12.Jh. 1 Wanderungen" [ref=e176] [cursor=pointer]:
+        - img "Absenreute" [ref=e178]
+        - generic [ref=e179]:
+          - paragraph [ref=e180]: Ravensburg, Baden-W�rttemberg
+          - heading "Absenreute" [level=3] [ref=e181]
+          - paragraph [ref=e182]: Es kann sich nach der Größe wohl nur um einen Ministerialensitz handeln. Schriftliche Quellen zur Burg sind nicht überliefert.
+          - generic [ref=e183]:
+            - generic [ref=e184]: Burgstelle
+            - generic [ref=e185]: 12.Jh.
+            - generic [ref=e186]: 1 Wanderungen
+      - button [ref=e187] [cursor=pointer]:
+        - img "Achalm" [ref=e189]
+        - generic [ref=e190]:
+          - paragraph [ref=e191]: Reutlingen, Baden-W�rttemberg
+          - heading "Achalm" [level=3] [ref=e192]
+          - paragraph [ref=e193]: Randhausanlage · 1.H.11.Jh. · 5 Wanderungen
+      - button [ref=e194] [cursor=pointer]:
+        - img "Achberg" [ref=e196]
+        - generic [ref=e197]:
+          - paragraph [ref=e198]: Ravensburg, Baden-W�rttemberg
+          - heading "Achberg" [level=3] [ref=e199]
+          - paragraph [ref=e200]: Kompaktanlage · 2.H.12.Jh. · 15 Wanderungen
+      - button [ref=e201] [cursor=pointer]:
+        - img "Achtermberg" [ref=e203]
+        - generic [ref=e204]:
+          - paragraph [ref=e205]: Essen-Stadt, Nordrhein-Westfalen
+          - heading "Achtermberg" [level=3] [ref=e206]
+          - paragraph [ref=e207]: Niederungsburg · 1.H.15.Jh. · 14 Wanderungen
+      - button [ref=e208] [cursor=pointer]:
+        - generic [ref=e209]:
+          - paragraph [ref=e210]: Aurich, Niedersachsen
+          - heading "Addingaburg" [level=3] [ref=e211]
+          - paragraph [ref=e212]: Abgegangene Burgstelle · 14.Jh.
+      - button [ref=e213] [cursor=pointer]:
+        - generic [ref=e214]:
+          - paragraph [ref=e215]: Neumarkt in der Oberpfalz, Bayern
+          - heading "Adelburg" [level=3] [ref=e216]
+          - paragraph [ref=e217]: Randhausanlage · 2.H.12.Jh. · 8 Wanderungen
+      - button [ref=e218] [cursor=pointer]:
+        - img "Adelebsen" [ref=e220]
+        - generic [ref=e221]:
+          - paragraph [ref=e222]: G�ttingen, Niedersachsen
+          - heading "Adelebsen" [level=3] [ref=e223]
+          - paragraph [ref=e224]: WohnturmRandhausanlage · 1.H.13.Jh. · 44 Wanderungen
+      - button [ref=e225] [cursor=pointer]:
+        - img "Adelmannsfelden" [ref=e227]
+        - generic [ref=e228]:
+          - paragraph [ref=e229]: Ostalbkreis, Baden-W�rttemberg
+          - heading "Adelmannsfelden" [level=3] [ref=e230]
+          - paragraph [ref=e231]: Ringmauerburg · 1.H.12.Jh. · 28 Wanderungen
+      - button [ref=e232] [cursor=pointer]:
+        - generic [ref=e233]:
+          - paragraph [ref=e234]: Ostalbkreis, Baden-W�rttemberg
+          - heading "Adelmannsfelden, Burgstall" [level=3] [ref=e235]
+          - paragraph [ref=e236]: Abgegangene BurgstelleNicht lokalisierte Anlage · unbekannt
+      - button [ref=e237] [cursor=pointer]:
+        - img "Adelmühle/Adelegg bei Horgenzell" [ref=e239]
+        - generic [ref=e240]:
+          - paragraph [ref=e241]: Ravensburg, Baden-W�rttemberg
+          - heading "Adelmühle/Adelegg bei Horgenzell" [level=3] [ref=e242]
+          - paragraph [ref=e243]: BurgstelleWallanlage · 13.Jh. · 6 Wanderungen
+      - button "Adelsberg, Adolphsbühl Main-Spessart-Kreis, Bayern Adelsberg, Adolphsbühl Ehemals bedeutende Niederungsburg in Ortslage, mittelalterliche Bausubstanz weitgehend verloren gegangen. NiederungsburgRandhausanlage 1.H.14.Jh. 35 Wanderungen" [ref=e244] [cursor=pointer]:
+        - img "Adelsberg, Adolphsbühl" [ref=e246]
+        - generic [ref=e247]:
+          - paragraph [ref=e248]: Main-Spessart-Kreis, Bayern
+          - heading "Adelsberg, Adolphsbühl" [level=3] [ref=e249]
+          - paragraph [ref=e250]: Ehemals bedeutende Niederungsburg in Ortslage, mittelalterliche Bausubstanz weitgehend verloren gegangen.
+          - generic [ref=e251]:
+            - generic [ref=e252]: NiederungsburgRandhausanlage
+            - generic [ref=e253]: 1.H.14.Jh.
+            - generic [ref=e254]: 35 Wanderungen
+      - button [ref=e255] [cursor=pointer]:
+        - img "Adelsheim, Unterschloss" [ref=e257]
+        - generic [ref=e258]:
+          - paragraph [ref=e259]: Neckar-Odenwald-Kreis, Baden-W�rttemberg
+          - heading "Adelsheim, Unterschloss" [level=3] [ref=e260]
+          - paragraph [ref=e261]: Wasserburg · 1.H.13.Jh. · 28 Wanderungen
+      - button [ref=e262] [cursor=pointer]:
+        - img "Adelshofen bei Eppingen" [ref=e264]
+        - generic [ref=e265]:
+          - paragraph [ref=e266]: Heilbronn, Baden-W�rttemberg
+          - heading "Adelshofen bei Eppingen" [level=3] [ref=e267]
+          - paragraph [ref=e268]: Abgegangene BurgstelleWasserburg · 2.H.13.Jh. · 4 Wanderungen
+      - button [ref=e269] [cursor=pointer]:
+        - img "Adelsreute bei Taldorf, Burgstall" [ref=e271]
+        - generic [ref=e272]:
+          - paragraph [ref=e273]: Ravensburg, Baden-W�rttemberg
+          - heading "Adelsreute bei Taldorf, Burgstall" [level=3] [ref=e274]
+          - paragraph [ref=e275]: Abgegangene BurgstelleNicht lokalisierte Anlage · 11.Jh.
+      - button [ref=e276] [cursor=pointer]:
+        - img "Adelsreute bei Taldorf, Hasentobel" [ref=e278]
+        - generic [ref=e279]:
+          - paragraph [ref=e280]: Ravensburg, Baden-W�rttemberg
+          - heading "Adelsreute bei Taldorf, Hasentobel" [level=3] [ref=e281]
+          - paragraph [ref=e282]: Burgstelle · unbekannt
+      - button "Aden Unna, Nordrhein-Westfalen Aden Wasserburg der Grafen von der Mark im Besitz der Familien von Fridag und von Norrentin. Abgegangene BurgstelleWasserburg 2.H.12.Jh. 2 Wanderungen" [ref=e283] [cursor=pointer]:
+        - img "Aden" [ref=e285]
+        - generic [ref=e286]:
+          - paragraph [ref=e287]: Unna, Nordrhein-Westfalen
+          - heading "Aden" [level=3] [ref=e288]
+          - paragraph [ref=e289]: Wasserburg der Grafen von der Mark im Besitz der Familien von Fridag und von Norrentin.
+          - generic [ref=e290]:
+            - generic [ref=e291]: Abgegangene BurgstelleWasserburg
+            - generic [ref=e292]: 2.H.12.Jh.
+            - generic [ref=e293]: 2 Wanderungen
+      - button [ref=e294] [cursor=pointer]:
+        - img "Adenau, Burg auf dem Buttermarkt" [ref=e296]
+        - generic [ref=e297]:
+          - paragraph [ref=e298]: Ahrweiler, Rheinland-Pfalz
+          - heading "Adenau, Burg auf dem Buttermarkt" [level=3] [ref=e299]
+          - paragraph [ref=e300]: BurghausWohnturm · 2.H.14.Jh. · 38 Wanderungen
+      - button [ref=e301] [cursor=pointer]:
+        - generic [ref=e302]:
+          - paragraph [ref=e303]: Ahrweiler, Rheinland-Pfalz
+          - heading "Adenau, Burghaus zur Mühlen" [level=3] [ref=e304]
+          - paragraph [ref=e305]: Burghaus · 2.H.14.Jh. · 56 Wanderungen
+      - button [ref=e306] [cursor=pointer]:
+        - img "Adendorf" [ref=e308]
+        - generic [ref=e309]:
+          - paragraph [ref=e310]: Rhein-Sieg-Kreis, Nordrhein-Westfalen
+          - heading "Adendorf" [level=3] [ref=e311]
+          - paragraph [ref=e312]: Wasserburg · 1.H.14.Jh. · 25 Wanderungen
+      - button [ref=e313] [cursor=pointer]:
+        - generic [ref=e314]:
+          - paragraph [ref=e315]: Rhein-Sieg-Kreis, Nordrhein-Westfalen
+          - heading "Adendorf, Motte" [level=3] [ref=e316]
+          - paragraph [ref=e317]: Motte · unbekannt · 26 Wanderungen
+      - button "Adensen Hildesheim, Niedersachsen Adensen Sitz eines nach dem Ort benannten Adelsgeschlechts. Abgegangene Burgstelle 1.H.12.Jh. 8 Wanderungen" [ref=e318] [cursor=pointer]:
+        - img "Adensen" [ref=e320]
+        - generic [ref=e321]:
+          - paragraph [ref=e322]: Hildesheim, Niedersachsen
+          - heading "Adensen" [level=3] [ref=e323]
+          - paragraph [ref=e324]: Sitz eines nach dem Ort benannten Adelsgeschlechts.
+          - generic [ref=e325]:
+            - generic [ref=e326]: Abgegangene Burgstelle
+            - generic [ref=e327]: 1.H.12.Jh.
+            - generic [ref=e328]: 8 Wanderungen
+      - button [ref=e329] [cursor=pointer]:
+        - img "Adenstedt" [ref=e331]
+        - generic [ref=e332]:
+          - paragraph [ref=e333]: Hildesheim, Niedersachsen
+          - heading "Adenstedt" [level=3] [ref=e334]
+          - paragraph [ref=e335]: Abgegangene Burgstelle · 1.H.13.Jh. · 9 Wanderungen
+      - button [ref=e336] [cursor=pointer]:
+        - img "Adersheim" [ref=e338]
+        - generic [ref=e339]:
+          - paragraph [ref=e340]: Wolfenb�ttel, Niedersachsen
+          - heading "Adersheim" [level=3] [ref=e341]
+          - paragraph [ref=e342]: Motte · 1.H.13.Jh. · 5 Wanderungen
+      - button [ref=e343] [cursor=pointer]:
+        - img "Adolfseck" [ref=e345]
+        - generic [ref=e346]:
+          - paragraph [ref=e347]: Rheingau-Taunus-Kreis, Hessen
+          - heading "Adolfseck" [level=3] [ref=e348]
+          - paragraph [ref=e349]: Randhausanlage · 2.H.14.Jh. · 11 Wanderungen
+      - button [ref=e350] [cursor=pointer]:
+        - img "Adolzfurt" [ref=e352]
+        - generic [ref=e353]:
+          - paragraph [ref=e354]: Hohenlohe, Baden-W�rttemberg
+          - heading "Adolzfurt" [level=3] [ref=e355]
+          - paragraph [ref=e356]: Wasserburg · 13.Jh. · 24 Wanderungen
+      - button "Aerzen Hameln-Pyrmont, Niedersachsen Aerzen Wasserburg der Herren von Everstein. Wasserburg 2.H.13.Jh. 58 Wanderungen" [ref=e357] [cursor=pointer]:
+        - img "Aerzen" [ref=e359]
+        - generic [ref=e360]:
+          - paragraph [ref=e361]: Hameln-Pyrmont, Niedersachsen
+          - heading "Aerzen" [level=3] [ref=e362]
+          - paragraph [ref=e363]: Wasserburg der Herren von Everstein.
+          - generic [ref=e364]:
+            - generic [ref=e365]: Wasserburg
+            - generic [ref=e366]: 2.H.13.Jh.
+            - generic [ref=e367]: 58 Wanderungen
+      - button [ref=e368] [cursor=pointer]:
+        - img "Affalterloch" [ref=e370]
+        - generic [ref=e371]:
+          - paragraph [ref=e372]: Rhein-Pfalz-Kreis, Rheinland-Pfalz
+          - heading "Affalterloch" [level=3] [ref=e373]
+          - paragraph [ref=e374]: Abgegangene BurgstelleMotte-fraglich · 1.H.14.Jh. · 4 Wanderungen
+      - button [ref=e375] [cursor=pointer]:
+        - img "Affaltrach" [ref=e377]
+        - generic [ref=e378]:
+          - paragraph [ref=e379]: Heilbronn, Baden-W�rttemberg
+          - heading "Affaltrach" [level=3] [ref=e380]
+          - paragraph [ref=e381]: Niederungsburg · unbekannt · 24 Wanderungen
+      - button [ref=e382] [cursor=pointer]:
+        - img "Affelderle" [ref=e384]
+        - generic [ref=e385]:
+          - paragraph [ref=e386]: Germersheim, Rheinland-Pfalz
+          - heading "Affelderle" [level=3] [ref=e387]
+          - paragraph [ref=e388]: Burgstelle · 12.Jh. · 11 Wanderungen
+      - button [ref=e389] [cursor=pointer]:
+        - img "Affelstetten" [ref=e391]
+        - generic [ref=e392]:
+          - paragraph [ref=e393]: Sigmaringen, Baden-W�rttemberg
+          - heading "Affelstetten" [level=3] [ref=e394]
+          - paragraph [ref=e395]: Felsenburg · 14.Jh. · 19 Wanderungen
+      - button "Affenstein Bad Kreuznach, Rheinland-Pfalz Affenstein Vermuteter Burgmannensitz oder Vorwerk der Burg Rheingrafenstein. Burghaus 1.H.15.Jh. 62 Wanderungen" [ref=e396] [cursor=pointer]:
+        - img "Affenstein" [ref=e398]
+        - generic [ref=e399]:
+          - paragraph [ref=e400]: Bad Kreuznach, Rheinland-Pfalz
+          - heading "Affenstein" [level=3] [ref=e401]
+          - paragraph [ref=e402]: Vermuteter Burgmannensitz oder Vorwerk der Burg Rheingrafenstein.
+          - generic [ref=e403]:
+            - generic [ref=e404]: Burghaus
+            - generic [ref=e405]: 1.H.15.Jh.
+            - generic [ref=e406]: 62 Wanderungen
+      - button [ref=e407] [cursor=pointer]:
+        - generic [ref=e408]:
+          - paragraph [ref=e409]: Bad D�rkheim, Rheinland-Pfalz
+          - heading "Affenstein bei Ellerstadt" [level=3] [ref=e410]
+          - paragraph [ref=e411]: Abgegangene BurgstelleMotte-fraglich · unbekannt · 6 Wanderungen
+      - button [ref=e412] [cursor=pointer]:
+        - img "Affenstein bei Göttlishofen" [ref=e414]
+        - generic [ref=e415]:
+          - paragraph [ref=e416]: Ravensburg, Baden-W�rttemberg
+          - heading "Affenstein bei Göttlishofen" [level=3] [ref=e417]
+          - paragraph [ref=e418]: Abgegangene Burgstelle · 13.Jh. · 1 Wanderungen
+      - button [ref=e419] [cursor=pointer]:
+        - generic [ref=e420]:
+          - paragraph [ref=e421]: Neckar-Odenwald-Kreis, Baden-W�rttemberg
+          - heading "Aglasterhausen" [level=3] [ref=e422]
+          - paragraph [ref=e423]: Abgegangene BurgstelleTurmburg · 12.Jh.
+      - button [ref=e424] [cursor=pointer]:
+        - generic [ref=e425]:
+          - paragraph [ref=e426]: Wei�enburg-Gunzenhausen, Bayern
+          - heading "Aha" [level=3] [ref=e427]
+          - paragraph [ref=e428]: Motte · 1.H.13.Jh. · 4 Wanderungen
+      - button "Ahaus Borken, Nordrhein-Westfalen Ahaus Sitz der Herren von Ahaus und später Landesburg und Residenzschloss der Bischöfe von Münster WasserburgRingmauerburg 1.H.11.Jh. 57 Wanderungen" [ref=e429] [cursor=pointer]:
+        - img "Ahaus" [ref=e431]
+        - generic [ref=e432]:
+          - paragraph [ref=e433]: Borken, Nordrhein-Westfalen
+          - heading "Ahaus" [level=3] [ref=e434]
+          - paragraph [ref=e435]: Sitz der Herren von Ahaus und später Landesburg und Residenzschloss der Bischöfe von Münster
+          - generic [ref=e436]:
+            - generic [ref=e437]: WasserburgRingmauerburg
+            - generic [ref=e438]: 1.H.11.Jh.
+            - generic [ref=e439]: 57 Wanderungen
+      - button [ref=e440] [cursor=pointer]:
+        - img "Ahausen" [ref=e442]
+        - generic [ref=e443]:
+          - paragraph [ref=e444]: Olpe, Nordrhein-Westfalen
+          - heading "Ahausen" [level=3] [ref=e445]
+          - paragraph [ref=e446]: Niederungsburg · 1.H.14.Jh. · 13 Wanderungen
+      - button [ref=e447] [cursor=pointer]:
+        - img "Ahausen bei Mardorf" [ref=e449]
+        - generic [ref=e450]:
+          - paragraph [ref=e451]: Marburg-Biedenkopf, Hessen
+          - heading "Ahausen bei Mardorf" [level=3] [ref=e452]
+          - paragraph [ref=e453]: BurgstelleNiederungsburg · unbekannt
+      - button [ref=e454] [cursor=pointer]:
+        - img "Ahegg bei Deuchelried" [ref=e456]
+        - generic [ref=e457]:
+          - paragraph [ref=e458]: Ravensburg, Baden-W�rttemberg
+          - heading "Ahegg bei Deuchelried" [level=3] [ref=e459]
+          - paragraph [ref=e460]: Abgegangene BurgstelleNicht lokalisierte Anlage · 14.Jh.
+      - button [ref=e461] [cursor=pointer]:
+        - img "Ahlberg" [ref=e463]
+        - generic [ref=e464]:
+          - paragraph [ref=e465]: Kassel, Hessen
+          - heading "Ahlberg" [level=3] [ref=e466]
+          - paragraph [ref=e467]: Wallanlage · unbekannt · 15 Wanderungen
+      - button "Ahlden Heidekreis, Niedersachsen Ahlden Burg der Herren von Ahlden und später der Herzöge von Braunschweig-Lüneburg. Wasserburg 14.Jh. 20 Wanderungen" [ref=e468] [cursor=pointer]:
+        - img "Ahlden" [ref=e470]
+        - generic [ref=e471]:
+          - paragraph [ref=e472]: Heidekreis, Niedersachsen
+          - heading "Ahlden" [level=3] [ref=e473]
+          - paragraph [ref=e474]: Burg der Herren von Ahlden und später der Herzöge von Braunschweig-Lüneburg.
+          - generic [ref=e475]:
+            - generic [ref=e476]: Wasserburg
+            - generic [ref=e477]: 14.Jh.
+            - generic [ref=e478]: 20 Wanderungen
+      - button [ref=e479] [cursor=pointer]:
+        - img "Ahldorf, Ortsburg" [ref=e481]
+        - generic [ref=e482]:
+          - paragraph [ref=e483]: Freudenstadt, Baden-W�rttemberg
+          - heading "Ahldorf, Ortsburg" [level=3] [ref=e484]
+          - paragraph [ref=e485]: Abgegangene Burgstelle · 13.Jh. · 24 Wanderungen
+      - button [ref=e486] [cursor=pointer]:
+        - generic [ref=e487]:
+          - paragraph [ref=e488]: Emsland, Niedersachsen
+          - heading "Ahlen" [level=3] [ref=e489]
+          - paragraph [ref=e490]: Abgegangene Burgstelle · 2.H.14.Jh. · 1 Wanderungen
+      - button [ref=e491] [cursor=pointer]:
+        - generic [ref=e492]:
+          - paragraph [ref=e493]: Northeim, Niedersachsen
+          - heading "Ahlsburg" [level=3] [ref=e494]
+          - paragraph [ref=e495]: Burgstelle · unbekannt
+      - button [ref=e496] [cursor=pointer]:
+        - generic [ref=e497]:
+          - paragraph [ref=e498]: Wesel, Nordrhein-Westfalen
+          - heading "Ahr bei Möllen" [level=3] [ref=e499]
+          - paragraph [ref=e500]: Motte-fraglichBurgstelle · 1.H.13.Jh. · 10 Wanderungen
+      - button [ref=e501] [cursor=pointer]:
+        - generic [ref=e502]:
+          - paragraph [ref=e503]: D�ren, Nordrhein-Westfalen
+          - heading "Ahr bei Pattern" [level=3] [ref=e504]
+          - paragraph [ref=e505]: Abgegangene BurgstelleWasserburg · 14.Jh.
+      - button [ref=e506] [cursor=pointer]:
+        - img "Ahrburg bei Golzheim" [ref=e508]
+        - generic [ref=e509]:
+          - paragraph [ref=e510]: D�ren, Nordrhein-Westfalen
+          - heading "Ahrburg bei Golzheim" [level=3] [ref=e511]
+          - paragraph [ref=e512]: NiederungsburgWasserburg · 1.H.15.Jh. · 13 Wanderungen
+      - button [ref=e513] [cursor=pointer]:
+        - generic [ref=e514]:
+          - paragraph [ref=e515]: Mecklenburgische Seenplatte, Mecklenburg-Vorpommern
+          - heading "Ahrensberg, Ringwall" [level=3] [ref=e516]
+          - paragraph [ref=e517]: Abgegangene BurgstelleRingwall · 9.Jh.
+      - button [ref=e518] [cursor=pointer]:
+        - generic [ref=e519]:
+          - paragraph [ref=e520]: Mecklenburgische Seenplatte, Mecklenburg-Vorpommern
+          - heading "Ahrensberg. Burg" [level=3] [ref=e521]
+          - paragraph [ref=e522]: Abgegangene Burgstelle · 2.H.13.Jh. · 10 Wanderungen
+      - button [ref=e523] [cursor=pointer]:
+        - generic [ref=e524]:
+          - paragraph [ref=e525]: Vorpommern-R�gen, Mecklenburg-Vorpommern
+          - heading "Ahrenshagen" [level=3] [ref=e526]
+          - paragraph [ref=e527]: BurgstelleWasserburg · 15.Jh.
+      - button [ref=e528] [cursor=pointer]:
+        - generic [ref=e529]:
+          - paragraph [ref=e530]: Ahrweiler, Rheinland-Pfalz
+          - heading "Ahrenthal" [level=3] [ref=e531]
+          - paragraph [ref=e532]: Wasserburg · 1.H.14.Jh. · 4 Wanderungen
+      - button [ref=e533] [cursor=pointer]:
+        - generic [ref=e534]:
+          - paragraph [ref=e535]: Recklinghausen, Nordrhein-Westfalen
+          - heading "Ahsen" [level=3] [ref=e536]
+          - paragraph [ref=e537]: Abgegangene BurgstelleNiederungsburg · 2.H.12.Jh.
+      - button [ref=e538] [cursor=pointer]:
+        - img "Aich, Burgstall hinter der Bombachmühle" [ref=e540]
+        - generic [ref=e541]:
+          - paragraph [ref=e542]: Esslingen, Baden-W�rttemberg
+          - heading "Aich, Burgstall hinter der Bombachmühle" [level=3] [ref=e543]
+          - paragraph [ref=e544]: Abgegangene Burgstelle · 1.H.14.Jh. · 24 Wanderungen
+      - button [ref=e545] [cursor=pointer]:
+        - generic [ref=e546]:
+          - paragraph [ref=e547]: Eichst�tt, Bayern
+          - heading "Aicha" [level=3] [ref=e548]
+          - paragraph [ref=e549]: Burgstelle · 12.Jh. · 2 Wanderungen
+      - button [ref=e550] [cursor=pointer]:
+        - img "Aicha vorm Wald" [ref=e552]
+        - generic [ref=e553]:
+          - paragraph [ref=e554]: Passau, Bayern
+          - heading "Aicha vorm Wald" [level=3] [ref=e555]
+          - paragraph [ref=e556]: WasserburgWohnturm · 1.H.14.Jh. · 36 Wanderungen
+      - button "Aichelberg G�ppingen, Baden-W�rttemberg Aichelberg Burg der Grafen von Aichelberg, als Stammburg benannt Burgstelle 1.H.13.Jh. 26 Wanderungen" [ref=e557] [cursor=pointer]:
+        - img "Aichelberg" [ref=e559]
+        - generic [ref=e560]:
+          - paragraph [ref=e561]: G�ppingen, Baden-W�rttemberg
+          - heading "Aichelberg" [level=3] [ref=e562]
+          - paragraph [ref=e563]: Burg der Grafen von Aichelberg, als Stammburg benannt
+          - generic [ref=e564]:
+            - generic [ref=e565]: Burgstelle
+            - generic [ref=e566]: 1.H.13.Jh.
+            - generic [ref=e567]: 26 Wanderungen
+      - button [ref=e568] [cursor=pointer]:
+        - img "Aichelberg, Turmberg" [ref=e570]
+        - generic [ref=e571]:
+          - paragraph [ref=e572]: G�ppingen, Baden-W�rttemberg
+          - heading "Aichelberg, Turmberg" [level=3] [ref=e573]
+          - paragraph [ref=e574]: BurgstelleAbschnittsburg · 13.Jh. · 21 Wanderungen
+      - button [ref=e575] [cursor=pointer]:
+        - img "Aichstetten" [ref=e577]
+        - generic [ref=e578]:
+          - paragraph [ref=e579]: Ravensburg, Baden-W�rttemberg
+          - heading "Aichstetten" [level=3] [ref=e580]
+          - paragraph [ref=e581]: WasserburgMotte-fraglich · 13.Jh. · 8 Wanderungen
+      - button [ref=e582] [cursor=pointer]:
+        - img "Aidlingen" [ref=e584]
+        - generic [ref=e585]:
+          - paragraph [ref=e586]: B�blingen, Baden-W�rttemberg
+          - heading "Aidlingen" [level=3] [ref=e587]
+          - paragraph [ref=e588]: Burgstelle · 12.Jh.
+      - button [ref=e589] [cursor=pointer]:
+        - img "Aignhof" [ref=e591]
+        - generic [ref=e592]:
+          - paragraph [ref=e593]: Cham, Bayern
+          - heading "Aignhof" [level=3] [ref=e594]
+          - paragraph [ref=e595]: MotteBodendenkmal · 12.Jh. · 28 Wanderungen
+      - button "Aistaig Rottweil, Baden-W�rttemberg Aistaig Adelssitz. Abschnittsburg unbekannt" [ref=e596] [cursor=pointer]:
+        - img "Aistaig" [ref=e598]
+        - generic [ref=e599]:
+          - paragraph [ref=e600]: Rottweil, Baden-W�rttemberg
+          - heading "Aistaig" [level=3] [ref=e601]
+          - paragraph [ref=e602]: Adelssitz.
+          - generic [ref=e603]:
+            - generic [ref=e604]: Abschnittsburg
+            - generic [ref=e605]: unbekannt
+      - button [ref=e606] [cursor=pointer]:
+        - img "Aitrach, St. Johanner Schanze" [ref=e608]
+        - generic [ref=e609]:
+          - paragraph [ref=e610]: Ravensburg, Baden-W�rttemberg
+          - heading "Aitrach, St. Johanner Schanze" [level=3] [ref=e611]
+          - paragraph [ref=e612]: Burgstelle · 10.Jh. · 2 Wanderungen
+      - button [ref=e613] [cursor=pointer]:
+        - generic [ref=e614]:
+          - paragraph [ref=e615]: Tuttlingen, Baden-W�rttemberg
+          - heading "Aixheim" [level=3] [ref=e616]
+          - paragraph [ref=e617]: MotteRingmauerburg · 2.H.11.Jh. · 4 Wanderungen
+      - button [ref=e618] [cursor=pointer]:
+        - generic [ref=e619]:
+          - paragraph [ref=e620]: Tuttlingen, Baden-W�rttemberg
+          - heading "Aixheim, Schlösslebühl" [level=3] [ref=e621]
+          - paragraph [ref=e622]: Abschnittsburg · unbekannt · 13 Wanderungen
+      - button [ref=e623] [cursor=pointer]:
+        - img "Albeck" [ref=e625]
+        - generic [ref=e626]:
+          - paragraph [ref=e627]: Rottweil, Baden-W�rttemberg
+          - heading "Albeck" [level=3] [ref=e628]
+          - paragraph [ref=e629]: Randhausanlage · 2.H.11.Jh. · 13 Wanderungen
+      - button "Albeck bei Langenau Alb-Donau-Kreis, Baden-W�rttemberg Albeck bei Langenau Zunächst Sitz der grafenähnlichen Herren von Albeck, dann Amtssitz. KastellburgRingmauerburg 2.H.11.Jh. 6 Wanderungen" [ref=e630] [cursor=pointer]:
+        - img "Albeck bei Langenau" [ref=e632]
+        - generic [ref=e633]:
+          - paragraph [ref=e634]: Alb-Donau-Kreis, Baden-W�rttemberg
+          - heading "Albeck bei Langenau" [level=3] [ref=e635]
+          - paragraph [ref=e636]: Zunächst Sitz der grafenähnlichen Herren von Albeck, dann Amtssitz.
+          - generic [ref=e637]:
+            - generic [ref=e638]: KastellburgRingmauerburg
+            - generic [ref=e639]: 2.H.11.Jh.
+            - generic [ref=e640]: 6 Wanderungen
+      - button [ref=e641] [cursor=pointer]:
+        - img "Albersreuth" [ref=e643]
+        - generic [ref=e644]:
+          - paragraph [ref=e645]: Roth, Bayern
+          - heading "Albersreuth" [level=3] [ref=e646]
+          - paragraph [ref=e647]: Motte · unbekannt · 1 Wanderungen
+      - button [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]:
+          - paragraph [ref=e650]: Alzey-Worms, Rheinland-Pfalz
+          - heading "Albig" [level=3] [ref=e651]
+          - paragraph [ref=e652]: Abgegangene Burgstelle · 14.Jh.
+      - button [ref=e653] [cursor=pointer]:
+        - img "Albungen, Hohe Schanze" [ref=e655]
+        - generic [ref=e656]:
+          - paragraph [ref=e657]: Werra-Mei�ner-Kreis, Hessen
+          - heading "Albungen, Hohe Schanze" [level=3] [ref=e658]
+          - paragraph [ref=e659]: BurgstelleRingmauerburg · unbekannt · 9 Wanderungen
+      - button [ref=e660] [cursor=pointer]:
+        - img "Albungen, Schanze beim Bilstein" [ref=e662]
+        - generic [ref=e663]:
+          - paragraph [ref=e664]: Werra-Mei�ner-Kreis, Hessen
+          - heading "Albungen, Schanze beim Bilstein" [level=3] [ref=e665]
+          - paragraph [ref=e666]: Abschnittsburg · unbekannt · 9 Wanderungen
+      - button "Aldeberg Heinsberg, Nordrhein-Westfalen Aldeberg Die Burg war Sitz der Herren von Arsbeck (bis 1561 \"Orsbeck\" geschrieben). Motte 1.H.13.Jh. 26 Wanderungen" [ref=e667] [cursor=pointer]:
+        - img "Aldeberg" [ref=e669]
+        - generic [ref=e670]:
+          - paragraph [ref=e671]: Heinsberg, Nordrhein-Westfalen
+          - heading "Aldeberg" [level=3] [ref=e672]
+          - paragraph [ref=e673]: Die Burg war Sitz der Herren von Arsbeck (bis 1561 "Orsbeck" geschrieben).
+          - generic [ref=e674]:
+            - generic [ref=e675]: Motte
+            - generic [ref=e676]: 1.H.13.Jh.
+            - generic [ref=e677]: 26 Wanderungen
+      - button [ref=e678] [cursor=pointer]:
+        - img "Aldenhoven" [ref=e680]
+        - generic [ref=e681]:
+          - paragraph [ref=e682]: Viersen, Nordrhein-Westfalen
+          - heading "Aldenhoven" [level=3] [ref=e683]
+          - paragraph [ref=e684]: Wasserburg · 15.Jh.
+      - button [ref=e685] [cursor=pointer]:
+        - img "Aldenrath" [ref=e687]
+        - generic [ref=e688]:
+          - paragraph [ref=e689]: Rhein-Erft-Kreis, Nordrhein-Westfalen
+          - heading "Aldenrath" [level=3] [ref=e690]
+          - paragraph [ref=e691]: WasserburgAbgegangene Burgstelle · 13.Jh. · 1 Wanderungen
+      - button [ref=e692] [cursor=pointer]:
+        - generic [ref=e693]:
+          - paragraph [ref=e694]: Aurich, Niedersachsen
+          - heading "Aldersnaburg" [level=3] [ref=e695]
+          - paragraph [ref=e696]: Abgegangene Burgstelle · 1.H.14.Jh. · 28 Wanderungen
+      - button [ref=e697] [cursor=pointer]:
+        - img "Aldingen am Neckar, Altes Schloss" [ref=e699]
+        - generic [ref=e700]:
+          - paragraph [ref=e701]: Ludwigsburg, Baden-W�rttemberg
+          - heading "Aldingen am Neckar, Altes Schloss" [level=3] [ref=e702]
+          - paragraph [ref=e703]: Abgegangene Burgstelle · 2.H.13.Jh. · 16 Wanderungen
+      - button "Alfdorf, Unteres Schloss Rems-Murr-Kreis, Baden-W�rttemberg Alfdorf, Unteres Schloss mutmaßlich schon Sitz der hochmittelalterlichen Lehensnehmer bzw. deren Ministerialen Niederungsburg 14.Jh. 27 Wanderungen" [ref=e704] [cursor=pointer]:
+        - img "Alfdorf, Unteres Schloss" [ref=e706]
+        - generic [ref=e707]:
+          - paragraph [ref=e708]: Rems-Murr-Kreis, Baden-W�rttemberg
+          - heading "Alfdorf, Unteres Schloss" [level=3] [ref=e709]
+          - paragraph [ref=e710]: mutmaßlich schon Sitz der hochmittelalterlichen Lehensnehmer bzw. deren Ministerialen
+          - generic [ref=e711]:
+            - generic [ref=e712]: Niederungsburg
+            - generic [ref=e713]: 14.Jh.
+            - generic [ref=e714]: 27 Wanderungen
+      - button [ref=e715] [cursor=pointer]:
+        - img "Alfeld" [ref=e717]
+        - generic [ref=e718]:
+          - paragraph [ref=e719]: Hildesheim, Niedersachsen
+          - heading "Alfeld" [level=3] [ref=e720]
+          - paragraph [ref=e721]: Abgegangene BurgstelleNiederungsburg · 2.H.14.Jh. · 60 Wanderungen
+      - button [ref=e722] [cursor=pointer]:
+        - img "Alfens, Motte" [ref=e724]
+        - generic [ref=e725]:
+          - paragraph [ref=e726]: Heinsberg, Nordrhein-Westfalen
+          - heading "Alfens, Motte" [level=3] [ref=e727]
+          - paragraph [ref=e728]: Motte-fraglichErdwerk · 12.Jh. · 13 Wanderungen
+      - button [ref=e729] [cursor=pointer]:
+        - img "Alfens, Wasserburg" [ref=e731]
+        - generic [ref=e732]:
+          - paragraph [ref=e733]: Heinsberg, Nordrhein-Westfalen
+          - heading "Alfens, Wasserburg" [level=3] [ref=e734]
+          - paragraph [ref=e735]: Wasserburg · 14.Jh. · 12 Wanderungen
+      - button [ref=e736] [cursor=pointer]:
+        - generic [ref=e737]:
+          - paragraph [ref=e738]: Cuxhaven, Niedersachsen
+          - heading "Alfstedt" [level=3] [ref=e739]
+          - paragraph [ref=e740]: RingwallNiederungsburg · unbekannt
+      - button "Alfstedter Holz Rotenburg, Niedersachsen Alfstedter Holz Wasserburg der Herren von Horectorpe. WasserburgTurmburg 12.Jh." [ref=e741] [cursor=pointer]:
+        - img "Alfstedter Holz" [ref=e743]
+        - generic [ref=e744]:
+          - paragraph [ref=e745]: Rotenburg, Niedersachsen
+          - heading "Alfstedter Holz" [level=3] [ref=e746]
+          - paragraph [ref=e747]: Wasserburg der Herren von Horectorpe.
+          - generic [ref=e748]:
+            - generic [ref=e749]: WasserburgTurmburg
+            - generic [ref=e750]: 12.Jh.
+      - button [ref=e751] [cursor=pointer]:
+        - generic [ref=e752]:
+          - paragraph [ref=e753]: Rhein-Sieg-Kreis, Nordrhein-Westfalen
+          - heading "Alfter, Alte Burg" [level=3] [ref=e754]
+          - paragraph [ref=e755]: RingwallBodendenkmal · 1.H.12.Jh. · 54 Wanderungen
+      - button [ref=e756] [cursor=pointer]:
+        - img "Alfter, Burg" [ref=e758]
+        - generic [ref=e759]:
+          - paragraph [ref=e760]: Rhein-Sieg-Kreis, Nordrhein-Westfalen
+          - heading "Alfter, Burg" [level=3] [ref=e761]
+          - paragraph [ref=e762]: Niederungsburg · 1.H.13.Jh. · 53 Wanderungen
+      - button [ref=e763] [cursor=pointer]:
+        - generic [ref=e764]:
+          - paragraph [ref=e765]: Birkenfeld, Rheinland-Pfalz
+          - heading "Allenbach" [level=3] [ref=e766]
+          - paragraph [ref=e767]: NiederungsburgRingmauerburg · 2.H.13.Jh. · 31 Wanderungen
+      - button [ref=e768] [cursor=pointer]:
+        - generic [ref=e769]:
+          - paragraph [ref=e770]: Limburg-Weilburg, Hessen
+          - heading "Allendorf bei Merenberg" [level=3] [ref=e771]
+          - paragraph [ref=e772]: Abgegangene Burgstelle · 1.H.14.Jh.
+      - button "Allensbach Konstanz, Baden-W�rttemberg Allensbach Burg von Ministerialen der Abtei Reichenau, wahrscheinlich gegründet durch die Herren von Allensbach. Turmburg 1.H.13.Jh. 44 Wanderungen" [ref=e773] [cursor=pointer]:
+        - img "Allensbach" [ref=e775]
+        - generic [ref=e776]:
+          - paragraph [ref=e777]: Konstanz, Baden-W�rttemberg
+          - heading "Allensbach" [level=3] [ref=e778]
+          - paragraph [ref=e779]: Burg von Ministerialen der Abtei Reichenau, wahrscheinlich gegründet durch die Herren von Allensbach.
+          - generic [ref=e780]:
+            - generic [ref=e781]: Turmburg
+            - generic [ref=e782]: 1.H.13.Jh.
+            - generic [ref=e783]: 44 Wanderungen
+      - button [ref=e784] [cursor=pointer]:
+        - img "Allerburg bei Holzhausen" [ref=e786]
+        - generic [ref=e787]:
+          - paragraph [ref=e788]: Marburg-Biedenkopf, Hessen
+          - heading "Allerburg bei Holzhausen" [level=3] [ref=e789]
+          - paragraph [ref=e790]: Abschnittsburg · unbekannt · 9 Wanderungen
+      - button [ref=e791] [cursor=pointer]:
+        - generic [ref=e792]:
+          - paragraph [ref=e793]: Waldeck-Frankenberg, Hessen
+          - heading "Alleringhausen" [level=3] [ref=e794]
+          - paragraph [ref=e795]: Burgstelle · unbekannt
+      - button [ref=e796] [cursor=pointer]:
+        - generic [ref=e797]:
+          - paragraph [ref=e798]: Waldeck-Frankenberg, Hessen
+          - heading "Alleringhausen, Ellenburg" [level=3] [ref=e799]
+          - paragraph [ref=e800]: Burgstelle · unbekannt · 3 Wanderungen
+      - button [ref=e801] [cursor=pointer]:
+        - generic [ref=e802]:
+          - paragraph [ref=e803]: ", Hamburg"
+          - heading "Allermöhe" [level=3] [ref=e804]
+          - paragraph [ref=e805]: Abgegangene BurgstelleNicht lokalisierte Anlage · 1.H.14.Jh.

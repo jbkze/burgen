@@ -16,7 +16,7 @@ SEARCH_URL = f"{BASE}/cgi-bin/ebidat.pl?a=a&te53=1"
 PAGE_URL = f"{BASE}/cgi-bin/r30msvcshop_anzeige.pl"
 DETAIL_URL = f"{BASE}/cgi-bin/ebidat.pl?id={{}}"
 HAUPT_URL = f"{BASE}/cgi-bin/ebidat.pl?m=h&id={{}}"
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(__file__).parent / "site" / "data"
 HEADERS = {"User-Agent": "BurgenScraper/1.0 (educational project)"}
 DELAY = 1.0
 

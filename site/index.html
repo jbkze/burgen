@@ -217,8 +217,9 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const API = '/api';
-let browseMap, tripMap, allCastles = [], currentMode = 'browse';
+const HAFAS = 'https://v6.db.transport.rest';
+const OSRM = 'https://router.project-osrm.org';
+let browseMap, tripMap, fullCastles = [], allCastles = [], currentMode = 'browse';
 const browseMarkers = L.layerGroup(), tripMarkers = L.layerGroup();
 
 function tileLayer() {
@@ -226,10 +227,134 @@ function tileLayer() {
 }
 function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, rad = d => d * Math.PI / 180;
+  const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function summarize(c) {
+  const meta = c.meta || {}, komoot = c.komoot || {};
+  return {
+    id: c.id, name: c.name, lat: c.lat, lon: c.lon,
+    state: meta['Bundesland'] || '', kreis: meta['Kreis'] || '',
+    typ: meta['Klassifizierung'] || '',
+    erhaltung: meta['Erhaltung - Heutiger Zustand'] || '',
+    datierung: meta['Datierung-Beginn'] || '',
+    kurzansprache: meta['Kurzansprache'] || '',
+    image: (c.images && c.images.length) ? c.images[0].thumb : null,
+    hike_count: komoot.hike_count || 0,
+    avg_rating: komoot.avg_rating,
+  };
+}
+
+function computeFilters(castles) {
+  const states = new Set(), types = new Set(), erhaltung = new Set();
+  castles.forEach(c => {
+    const meta = c.meta || {};
+    if (meta['Bundesland']) states.add(meta['Bundesland']);
+    (meta['Klassifizierung'] || '').split(',').forEach(t => { t = t.trim(); if (t) types.add(t); });
+    if (meta['Erhaltung - Heutiger Zustand']) erhaltung.add(meta['Erhaltung - Heutiger Zustand']);
+  });
+  const sortDe = s => [...s].sort((a,b) => a.localeCompare(b,'de'));
+  return { states: sortDe(states), types: sortDe(types), erhaltung: sortDe(erhaltung) };
+}
+
+async function resolveStation(name) {
+  try {
+    const r = await fetch(`${HAFAS}/locations?query=${encodeURIComponent(name)}&results=1`);
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!Array.isArray(data) || !data.length) return null;
+    const s = data[0];
+    return { id: s.id, name: s.name, lat: s.location?.latitude, lon: s.location?.longitude };
+  } catch(e) { return null; }
+}
+
+async function getJourney(fromId, toId) {
+  try {
+    const r = await fetch(`${HAFAS}/journeys?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&results=1`);
+    if (!r.ok) return null;
+    const data = await r.json();
+    const j = (data.journeys || [])[0];
+    if (!j || !(j.legs || []).length) return null;
+    const legs = j.legs;
+    const dep = legs[0].departure, arr = legs[legs.length-1].arrival;
+    if (!dep || !arr) return null;
+    const lines = legs.filter(l => l.line).map(l => l.line.name || '');
+    return {
+      duration_min: Math.round((new Date(arr) - new Date(dep)) / 60000),
+      changes: Math.max(0, lines.length - 1),
+      lines,
+    };
+  } catch(e) { return null; }
+}
+
+async function osrmTable(origin, cands, annotations) {
+  const coords = `${origin.lon.toFixed(5)},${origin.lat.toFixed(5)};` + cands.map(c => `${c.lon.toFixed(5)},${c.lat.toFixed(5)}`).join(';');
+  const r = await fetch(`${OSRM}/table/v1/driving/${coords}?sources=0&annotations=${annotations}`);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function mapLimit(items, limit, fn) {
+  const results = []; let i = 0;
+  await Promise.all(Array.from({length: Math.min(limit, items.length)}, async () => {
+    while (i < items.length) { const idx = i++; results[idx] = await fn(items[idx]); }
+  }));
+  return results;
+}
+
+async function planCar(origin, cands, maxMin) {
+  let table = null;
+  try { table = await osrmTable(origin, cands, 'duration,distance'); } catch(e) {}
+  if (!table) return [];
+  const dur = (table.durations || [[]])[0], dist = (table.distances || [[]])[0];
+  const out = [];
+  cands.forEach((c, i) => {
+    const d = dur[i+1];
+    if (d == null) return;
+    const min = Math.round(d / 60);
+    if (min > maxMin) return;
+    const s = summarize(c);
+    s.distance_km = (dist && dist[i+1] != null) ? Math.round(dist[i+1] / 100) / 10 : null;
+    s.travel = { duration_min: min, distance_km: s.distance_km };
+    out.push(s);
+  });
+  return out;
+}
+
+async function planTrain(origin, cands, maxMin) {
+  const withStation = cands.filter(c => c.station && c.station.station_id);
+  if (!withStation.length) return [];
+  let top = null;
+  try {
+    const table = await osrmTable(origin, withStation, 'duration');
+    const dur = table ? (table.durations || [[]])[0] : null;
+    if (dur) {
+      const scored = withStation.map((c, i) => [c, dur[i+1] != null ? Math.round(dur[i+1] / 60) : 999]);
+      scored.sort((a, b) => a[1] - b[1]);
+      top = scored.filter(([, d]) => d <= maxMin * 2).slice(0, 15).map(([c]) => c);
+    }
+  } catch(e) {}
+  if (!top) top = [...withStation].sort((a, b) =>
+    haversineKm(origin.lat, origin.lon, a.lat, a.lon) - haversineKm(origin.lat, origin.lon, b.lat, b.lon)).slice(0, 15);
+  const results = await mapLimit(top, 5, async c => {
+    const j = await getJourney(origin.id, c.station.station_id);
+    if (!j || j.duration_min > maxMin) return null;
+    const s = summarize(c);
+    s.distance_km = Math.round(haversineKm(origin.lat, origin.lon, c.lat, c.lon) * 10) / 10;
+    s.travel = j;
+    return s;
+  });
+  return results.filter(Boolean);
+}
+
 async function init() {
-  const [cr, fr] = await Promise.all([fetch(`${API}/castles`).then(r=>r.json()), fetch(`${API}/filters`).then(r=>r.json())]);
-  allCastles = cr.castles;
-  populateFilters(fr);
+  fullCastles = await fetch('data/castles_enriched.json').then(r=>r.json());
+  allCastles = fullCastles.map(summarize);
+  populateFilters(computeFilters(fullCastles));
   browseMap = L.map('map-browse', {zoomControl:false}).setView([51,10.4],6);
   L.control.zoom({position:'topright'}).addTo(browseMap); tileLayer().addTo(browseMap); browseMarkers.addTo(browseMap);
   tripMap = L.map('map-trip', {zoomControl:false}).setView([51,10.4],6);
@@ -290,10 +415,21 @@ async function runTrip() {
   const er=document.getElementById('trip-erhaltung').value, ty=document.getElementById('trip-typ').value, mh=document.getElementById('trip-hikes').value;
   const status=document.getElementById('trip-status'), results=document.getElementById('trip-results');
   status.className='planner__status'; status.innerHTML=`<span class="loading-spinner"></span> Suche Verbindungen von ${esc(origin)}...`; results.innerHTML=''; tripMarkers.clearLayers();
-  const p=new URLSearchParams({origin,mode,max_minutes:maxTime}); if(er)p.set('erhaltung',er); if(ty)p.set('typ',ty); if(mh)p.set('min_hikes',mh);
   try {
-    const data = await fetch(`${API}/plan?${p}`).then(r=>r.json());
-    if (data.error) { status.className='planner__status error'; status.textContent=data.error; return; }
+    const originInfo = await resolveStation(origin);
+    if (!originInfo) { status.className='planner__status error'; status.textContent=`Station '${origin}' nicht gefunden`; return; }
+    const maxMin = parseInt(maxTime), minHikes = mh ? parseInt(mh) : 0;
+    const candidates = fullCastles.filter(c => {
+      if (c.lat == null) return false;
+      const meta = c.meta || {};
+      if (ty && !(meta['Klassifizierung']||'').toLowerCase().includes(ty)) return false;
+      if (er && !(meta['Erhaltung - Heutiger Zustand']||'').toLowerCase().includes(er)) return false;
+      if (minHikes && ((c.komoot||{}).hike_count||0) < minHikes) return false;
+      return true;
+    });
+    const found = mode === 'car' ? await planCar(originInfo, candidates, maxMin) : await planTrain(originInfo, candidates, maxMin);
+    found.sort((a,b) => ((a.travel||{}).duration_min ?? 999) - ((b.travel||{}).duration_min ?? 999));
+    const data = { origin: originInfo, count: found.length, max_minutes: maxMin, castles: found };
     status.textContent=`${data.count} erreichbare Burgen von ${data.origin.name} (max. ${data.max_minutes} min)`;
     if (data.origin.lat&&data.origin.lon) {
       const om=L.marker([data.origin.lat,data.origin.lon],{icon:L.divIcon({className:'',html:'<div style="width:14px;height:14px;background:oklch(50% 0.2 260);border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]})}); om.bindPopup(`<b>${data.origin.name}</b><br><small>Startpunkt</small>`); tripMarkers.addLayer(om);
@@ -317,7 +453,7 @@ function buildResult(c,mode) {
 }
 
 async function openDetail(id) {
-  const c = await fetch(`${API}/castles/${id}`).then(r=>r.json()); if (c.error) return;
+  const c = fullCastles.find(x => x.id === id); if (!c) return;
   const meta=c.meta||{}, sections=c.sections||{}, komoot=c.komoot||{}, station=c.station||{};
   const loc=[meta['Stadt / Gemeinde'],meta['Kreis'],meta['Bundesland']].filter(Boolean).join(', ');
   let metaHtml=''; ['Bundesland','Kreis','Stadt / Gemeinde','Typ','Klassifizierung','Höhenlage','Datierung-Beginn','Datierung-Ende','Erhaltung - Heutiger Zustand'].forEach(k=>{const v=meta[k];if(v)metaHtml+=`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`;});

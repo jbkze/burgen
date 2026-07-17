@@ -8,7 +8,7 @@ from pathlib import Path
 
 import requests
 
-DATA = Path(__file__).parent / "data"
+DATA = Path(__file__).parent / "site" / "data"
 DELAY = 0.5
 HEADERS = {"User-Agent": "BurgenPlaner/1.0", "Accept": "application/hal+json,application/json"}
 HAFAS = "https://v6.db.transport.rest"

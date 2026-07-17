@@ -1,16 +1,10 @@
-# Secrets & credentials
-.env
+# Python
+.venv/
+__pycache__/
+
+# Keep castle data, ignore other JSON dumps
 *.json
-!package.json
-!burgen/data/*.json
-
-# Audiobookshelf data
-audiobookshelf/config/
-audiobookshelf/metadata/
-audiobookshelf/podcasts/
-
-# Burgen
-burgen/.venv/
+!site/data/*.json
 
 # OS / editor
 .DS_Store
