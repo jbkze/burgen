@@ -8,7 +8,8 @@ from pathlib import Path
 
 import requests
 
-DATA = Path(__file__).parent / "site" / "data"
+RAW = Path(__file__).parent / "data"
+SITE_DATA = Path(__file__).parent / "site" / "data"
 DELAY = 0.5
 HEADERS = {"User-Agent": "BurgenPlaner/1.0", "Accept": "application/hal+json,application/json"}
 HAFAS = "https://v6.db.transport.rest"
@@ -77,15 +78,18 @@ def get_nearest_station(lat, lon):
 
 
 def main():
-    enriched = DATA / "castles_enriched.json"
-    fallback = DATA / "castles.json"
+    enriched = SITE_DATA / "castles_enriched.json"
+    fallback = RAW / "castles.json"
     src = enriched if enriched.exists() else fallback
     with open(src, encoding="utf-8") as f:
         castles = json.load(f)
 
     komoot_only = "--komoot-only" in sys.argv
 
-    print(f"Enriching {len(castles)} castles...{' (Komoot only)' if komoot_only else ''}")
+    # The site only shows castles that have at least one image.
+    castles = [c for c in castles if c.get("images")]
+
+    print(f"Enriching {len(castles)} castles with images...{' (Komoot only)' if komoot_only else ''}")
 
     for i, castle in enumerate(castles):
         name = castle.get("name", "?")
@@ -112,7 +116,7 @@ def main():
 
         print()
 
-    out = DATA / "castles_enriched.json"
+    out = SITE_DATA / "castles_enriched.json"
     with open(out, "w", encoding="utf-8") as f:
         json.dump(castles, f, ensure_ascii=False, indent=2)
 

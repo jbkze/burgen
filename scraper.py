@@ -16,7 +16,7 @@ SEARCH_URL = f"{BASE}/cgi-bin/ebidat.pl?a=a&te53=1"
 PAGE_URL = f"{BASE}/cgi-bin/r30msvcshop_anzeige.pl"
 DETAIL_URL = f"{BASE}/cgi-bin/ebidat.pl?id={{}}"
 HAUPT_URL = f"{BASE}/cgi-bin/ebidat.pl?m=h&id={{}}"
-DATA_DIR = Path(__file__).parent / "site" / "data"
+DATA_DIR = Path(__file__).parent / "data"
 HEADERS = {"User-Agent": "BurgenScraper/1.0 (educational project)"}
 DELAY = 1.0
 
@@ -24,8 +24,8 @@ DELAY = 1.0
 def get_session_and_first_ids():
     """Hit the search page, extract session file and first 10 castle IDs."""
     r = requests.get(SEARCH_URL, headers=HEADERS)
-    r.encoding = "utf-8"
-    soup = BeautifulSoup(r.text, "html.parser")
+    # ebidat.de serves ISO-8859-1 (declared in meta charset); let bs4 detect it from the bytes
+    soup = BeautifulSoup(r.content, "html.parser")
 
     form = soup.find("form", {"name": "formseite2"})
     session_file = form.find("input", {"name": "var_datei_selektionen"})["value"]
@@ -43,8 +43,7 @@ def get_page_ids(session_file, offset):
         "var_html_folgemaske": "r30msvcshop_anzeige.html",
     }
     r = requests.get(PAGE_URL, params=params, headers=HEADERS)
-    r.encoding = "utf-8"
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(r.content, "html.parser")
     return extract_ids(soup)
 
 
@@ -63,8 +62,7 @@ def extract_ids(soup):
 def scrape_detail(castle_id):
     """Scrape the detail + Hauptdaten pages for a single castle."""
     r = requests.get(DETAIL_URL.format(castle_id), headers=HEADERS)
-    r.encoding = "utf-8"
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(r.content, "html.parser")
 
     data = {"id": castle_id, "url": DETAIL_URL.format(castle_id)}
 
@@ -101,8 +99,7 @@ def scrape_detail(castle_id):
     time.sleep(DELAY)
 
     r2 = requests.get(HAUPT_URL.format(castle_id), headers=HEADERS)
-    r2.encoding = "utf-8"
-    soup2 = BeautifulSoup(r2.text, "html.parser")
+    soup2 = BeautifulSoup(r2.content, "html.parser")
 
     meta = {}
     coords = None

@@ -4,7 +4,11 @@ __pycache__/
 
 # Keep castle data, ignore other JSON dumps
 *.json
+!data/*.json
 !site/data/*.json
+
+# Tooling artifacts
+.playwright-mcp/
 
 # OS / editor
 .DS_Store

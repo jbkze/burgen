@@ -4,228 +4,533 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Burgen in Deutschland</title>
+<meta name="description" content="Entdecke Burgen in Deutschland — stöbere durch Geschichte, Bilder und Karten oder plane deinen nächsten Burgen-Ausflug mit Zug oder Auto.">
+<meta name="theme-color" content="#191411">
+<meta property="og:title" content="Burgen in Deutschland">
+<meta property="og:description" content="Eine Entdeckungsreise durch deutsche Burgengeschichte — mit Reiseplaner.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏰</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
+/* ————————————————————— Grundgerüst ————————————————————— */
 :root {
-  --bg: oklch(97% 0.006 55);
-  --surface: oklch(100% 0.003 55);
-  --accent: oklch(52% 0.14 28);
-  --accent-light: oklch(92% 0.04 28);
-  --accent-hover: oklch(45% 0.16 28);
-  --text: oklch(18% 0.01 55);
-  --text-secondary: oklch(42% 0.02 55);
-  --text-tertiary: oklch(58% 0.015 55);
-  --border: oklch(88% 0.01 55);
-  --border-light: oklch(93% 0.005 55);
-  --green: oklch(55% 0.15 145);
-  --green-light: oklch(92% 0.04 145);
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px;
-  --space-xl: 48px; --space-2xl: 64px; --max-w: 1120px;
+  --bg: oklch(17% 0.012 55);
+  --bg-deep: oklch(14% 0.011 55);
+  --surface: oklch(21% 0.014 55);
+  --elevated: oklch(25% 0.016 55);
+  --line: oklch(31% 0.014 55);
+  --line-soft: oklch(26% 0.012 55);
+  --ink: oklch(93% 0.016 80);
+  --ink-2: oklch(76% 0.022 75);
+  --ink-3: oklch(60% 0.02 70);
+  --amber: oklch(80% 0.125 75);
+  --amber-strong: oklch(86% 0.14 80);
+  --amber-dim: oklch(66% 0.11 70);
+  --amber-wash: oklch(80% 0.125 75 / 0.12);
+  --green: oklch(78% 0.12 150);
+  --green-wash: oklch(78% 0.12 150 / 0.13);
+  --red: oklch(72% 0.16 30);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --max-w: 1100px;
+  --pad: clamp(18px, 4vw, 32px);
+  --radius: 10px;
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+img { max-width: 100%; }
+button { font: inherit; color: inherit; }
+::selection { background: var(--amber); color: var(--bg-deep); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 4px; }
 
-.mode-bar { display: flex; justify-content: center; gap: var(--space-xs); padding: var(--space-md); background: var(--surface); border-bottom: 1px solid var(--border-light); position: sticky; top: 0; z-index: 900; }
-.mode-btn { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; padding: 0.5rem 1.25rem; border: 1.5px solid var(--border); border-radius: 99px; background: none; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease-out; }
-.mode-btn:hover { border-color: var(--accent); color: var(--accent); }
-.mode-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+/* ————————————————————— Kopfleiste ————————————————————— */
+.topbar {
+  position: sticky; top: 0; z-index: 1100;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 10px var(--pad);
+  padding-top: max(10px, env(safe-area-inset-top));
+  background: oklch(17% 0.012 55 / 0.82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.wordmark {
+  font-family: var(--serif); font-weight: 600; font-size: 1.2rem;
+  letter-spacing: 0.01em; text-decoration: none; color: var(--ink);
+  display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.wordmark svg { width: 22px; height: 22px; color: var(--amber); flex-shrink: 0; }
+.topnav { display: flex; gap: 4px; }
+.topnav a {
+  font-size: 0.88rem; font-weight: 600; text-decoration: none;
+  color: var(--ink-2); padding: 7px 16px; border-radius: 99px;
+  transition: color .15s ease, background .15s ease; white-space: nowrap;
+}
+.topnav a:hover { color: var(--ink); }
+.topnav a.active { background: var(--amber-wash); color: var(--amber-strong); }
 
-.hero { position: relative; background: var(--surface); }
-.hero__map { height: clamp(320px, 50vh, 520px); width: 100%; }
-.hero__overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: var(--space-xl) var(--space-lg) var(--space-lg); background: linear-gradient(to top, var(--surface) 20%, oklch(100% 0 0 / 0)); pointer-events: none; }
-.hero__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw + 0.5rem, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
-.hero__title span { color: var(--accent); }
-.hero__subtitle { font-size: 1rem; color: var(--text-secondary); margin-top: var(--space-sm); }
+/* ————————————————————— Held: Karte ————————————————————— */
+.hero { position: relative; background: var(--bg-deep); }
+.hero__map { height: clamp(300px, 52vh, 540px); width: 100%; background: var(--bg-deep); }
+.hero__scrim {
+  position: absolute; inset: auto 0 0 0; z-index: 500; pointer-events: none;
+  padding: 96px var(--pad) 26px;
+  background: linear-gradient(to top, var(--bg) 8%, oklch(17% 0.012 55 / 0.75) 45%, transparent);
+}
+.hero__inner { max-width: var(--max-w); margin: 0 auto; }
+.hero h1 {
+  font-family: var(--serif); font-weight: 560;
+  font-size: clamp(2.3rem, 6.5vw, 4.2rem);
+  font-variation-settings: "opsz" 100;
+  line-height: 1.02; letter-spacing: -0.015em; text-wrap: balance;
+}
+.hero h1 em { font-style: italic; color: var(--amber); }
+.hero p { color: var(--ink-2); font-size: clamp(0.92rem, 2.5vw, 1.05rem); margin-top: 10px; max-width: 55ch; }
+.hero__scrim--trip { padding-bottom: 82px; }
 
-.controls { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg) var(--space-lg) 0; display: flex; gap: var(--space-md); flex-wrap: wrap; align-items: center; }
-.controls input, .controls select { padding: 0.6rem 0.9rem; font-size: 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); transition: border-color 0.15s ease-out; }
-.controls input:focus, .controls select:focus { outline: none; border-color: var(--accent); }
-.controls input::placeholder { color: var(--text-tertiary); }
-.controls__search { flex: 1; min-width: 180px; }
-.controls__count { font-size: 0.85rem; color: var(--text-tertiary); margin-left: auto; }
+/* ————————————————————— Filterleiste ————————————————————— */
+.filterbar {
+  position: sticky; z-index: 1000;
+  top: calc(43px + max(10px, env(safe-area-inset-top)));
+  background: oklch(17% 0.012 55 / 0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.filterbar__inner {
+  max-width: var(--max-w); margin: 0 auto; padding: 12px var(--pad);
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.field {
+  position: relative; display: flex; align-items: center;
+}
+.field > svg { position: absolute; left: 12px; width: 15px; height: 15px; color: var(--ink-3); pointer-events: none; }
+input[type=text], select {
+  font-family: var(--sans); font-size: 0.9rem; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px;
+  transition: border-color .15s ease;
+  -webkit-appearance: none; appearance: none;
+}
+input[type=text]::placeholder { color: var(--ink-3); }
+input[type=text]:focus, select:focus { outline: none; border-color: var(--amber-dim); }
+select {
+  cursor: pointer; padding-right: 30px;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%23a89880" fill="none" stroke-width="1.6" stroke-linecap="round"/></svg>');
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+.filterbar input[type=text] { padding-left: 34px; flex: 1; min-width: 150px; width: 100%; }
+.filterbar .field--search { flex: 1 1 190px; }
+.count {
+  margin-left: auto; font-size: 0.82rem; color: var(--ink-3);
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.count b { color: var(--amber); font-weight: 700; }
 
-.planner { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg); }
-.planner__form { display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--space-md); align-items: end; }
-.planner__field label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-xs); }
-.planner__field input, .planner__field select { width: 100%; padding: 0.65rem 0.9rem; font-size: 0.95rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); }
-.planner__field input:focus, .planner__field select:focus { outline: none; border-color: var(--accent); }
-.planner__go { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; padding: 0.65rem 1.5rem; border: none; border-radius: 8px; background: var(--accent); color: white; cursor: pointer; transition: background 0.15s ease-out; white-space: nowrap; }
-.planner__go:hover { background: var(--accent-hover); }
-.planner__filters { display: flex; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; }
-.planner__filters select { padding: 0.5rem 0.75rem; font-size: 0.85rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font-body); }
-.planner__status { padding: var(--space-lg) 0; color: var(--text-tertiary); font-size: 0.95rem; }
-.planner__status.error { color: oklch(55% 0.2 25); }
+/* ————————————————————— Stream ————————————————————— */
+.stream { max-width: var(--max-w); margin: 0 auto; padding: 10px var(--pad) 90px; }
+.entry { cursor: pointer; }
+.entry:focus-visible { outline: 2px solid var(--amber); outline-offset: 6px; }
 
-.stream { max-width: var(--max-w); margin: 0 auto; padding: var(--space-lg); }
+.entry--featured {
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(20px, 4vw, 44px);
+  align-items: center; padding: clamp(28px, 5vw, 52px) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.entry--featured:nth-of-type(even) .entry__img { order: 2; }
+.entry__img {
+  border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 11;
+  background: var(--surface);
+}
+.entry__img img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .5s ease; filter: saturate(0.92);
+}
+.entry--featured:hover .entry__img img { transform: scale(1.035); }
+.eyebrow {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--amber);
+}
+.entry__name-lg {
+  font-family: var(--serif); font-weight: 540;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  font-variation-settings: "opsz" 72;
+  line-height: 1.08; letter-spacing: -0.01em; margin-top: 8px; text-wrap: balance;
+}
+.entry--featured:hover .entry__name-lg { color: var(--amber-strong); }
+.entry__teaser {
+  font-family: var(--serif); font-weight: 380; font-style: italic;
+  color: var(--ink-2); font-size: 1.02rem; line-height: 1.62;
+  margin-top: 12px; max-width: 52ch;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.chip {
+  font-size: 0.72rem; font-weight: 650; letter-spacing: 0.02em;
+  padding: 4px 12px; border-radius: 99px;
+  background: var(--elevated); color: var(--ink-2); border: 1px solid var(--line-soft);
+}
+.chip--hike { background: var(--green-wash); color: var(--green); border-color: transparent; }
 
-.result { display: grid; grid-template-columns: 80px 1fr auto; gap: var(--space-md); align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
-.result:hover { opacity: 0.75; }
-.result__thumb { width: 80px; height: 60px; border-radius: 4px; overflow: hidden; background: var(--border-light); }
-.result__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.result__info h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
-.result__location { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
-.result__meta { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 2px; }
-.result__travel { text-align: right; flex-shrink: 0; }
-.result__duration { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
-.result__duration small { font-size: 0.7rem; font-weight: 400; color: var(--text-tertiary); }
-.result__lines { font-size: 0.7rem; color: var(--text-tertiary); }
-.result__hikes { display: inline-flex; align-items: center; gap: 3px; font-size: 0.75rem; color: var(--green); font-weight: 600; }
+.entry--compact {
+  display: grid; grid-template-columns: 104px 1fr; gap: 18px; align-items: center;
+  padding: 18px 0; border-bottom: 1px solid var(--line-soft);
+}
+.entry__thumb {
+  width: 104px; height: 74px; border-radius: 8px; overflow: hidden;
+  background: var(--surface); flex-shrink: 0;
+}
+.entry__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.92); transition: transform .4s ease; }
+.entry--compact:hover .entry__thumb img { transform: scale(1.06); }
+.entry__name {
+  font-family: var(--serif); font-weight: 550; font-size: 1.14rem;
+  line-height: 1.25; margin-top: 3px;
+}
+.entry--compact:hover .entry__name { color: var(--amber-strong); }
+.entry__meta { font-size: 0.8rem; color: var(--ink-3); margin-top: 3px; }
+.entry__meta .hike { color: var(--green); font-weight: 600; }
 
-.entry--featured { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-lg); padding: var(--space-xl) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
-.entry--featured:hover { opacity: 0.85; }
-.entry--featured .entry__img { border-radius: 6px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--border-light); }
-.entry--featured .entry__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.entry--featured .entry__body { display: flex; flex-direction: column; justify-content: center; gap: var(--space-sm); }
-.entry__name--lg { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2rem); line-height: 1.15; letter-spacing: -0.01em; }
-.entry__teaser { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; max-width: 48ch; }
-.entry--compact { display: flex; gap: var(--space-md); align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: opacity 0.15s ease-out; }
-.entry--compact:hover { opacity: 0.75; }
-.entry__thumb { width: 80px; height: 60px; border-radius: 4px; overflow: hidden; flex-shrink: 0; background: var(--border-light); }
-.entry__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.entry__name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; line-height: 1.3; }
-.entry__location { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
-.entry__meta-line { font-size: 0.8rem; color: var(--text-tertiary); }
-.entry__tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-xs); }
-.tag { background: var(--accent-light); color: var(--accent); padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em; }
-.tag--hike { background: var(--green-light); color: var(--green); }
-.no-results { text-align: center; padding: var(--space-2xl) var(--space-lg); color: var(--text-tertiary); font-size: 1.1rem; display: none; }
+.empty {
+  display: none; text-align: center; padding: 90px var(--pad); color: var(--ink-3);
+}
+.empty p { font-family: var(--serif); font-size: 1.3rem; color: var(--ink-2); }
+.empty button {
+  margin-top: 18px; background: none; border: 1px solid var(--line);
+  color: var(--amber); padding: 8px 20px; border-radius: 99px;
+  cursor: pointer; font-weight: 600; font-size: 0.88rem;
+}
+.empty button:hover { border-color: var(--amber-dim); }
 
-.detail-view { display: none; }
-.detail-view.active { display: block; }
-.view.hidden { display: none; }
-.detail__nav { max-width: var(--max-w); margin: 0 auto; padding: var(--space-md) var(--space-lg); }
-.detail__back { background: none; border: 1.5px solid var(--border); color: var(--text); padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-family: var(--font-body); transition: border-color 0.15s ease-out; }
-.detail__back:hover { border-color: var(--accent); color: var(--accent); }
-.detail__header { max-width: var(--max-w); margin: 0 auto; padding: var(--space-xl) var(--space-lg) var(--space-lg); }
-.detail__location { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: var(--space-sm); }
-.detail__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 4vw + 0.5rem, 3rem); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
-.detail__lead { font-size: 1.1rem; color: var(--text-secondary); margin-top: var(--space-md); max-width: 65ch; line-height: 1.7; }
-.detail__gallery { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--space-lg); display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: var(--space-sm); scrollbar-width: thin; }
-.detail__gallery a { flex-shrink: 0; }
-.detail__gallery img { height: 280px; border-radius: 6px; display: block; }
-.detail__content { max-width: var(--max-w); margin: 0 auto; padding: var(--space-xl) var(--space-lg); display: grid; grid-template-columns: 1fr 320px; gap: var(--space-2xl); }
-.detail__section h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 2px solid var(--accent); display: inline-block; }
-.detail__section p { color: var(--text-secondary); line-height: 1.75; max-width: 65ch; margin-bottom: var(--space-md); }
-.detail__section + .detail__section { margin-top: var(--space-xl); }
-.detail__map { height: 220px; border-radius: 8px; margin-bottom: var(--space-lg); border: 1px solid var(--border); }
-.detail__meta { font-size: 0.85rem; line-height: 1.8; }
-.detail__meta dt { color: var(--text-tertiary); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; margin-top: var(--space-md); }
-.detail__meta dt:first-child { margin-top: 0; }
-.detail__meta dd { color: var(--text); font-weight: 500; }
-.detail__hike-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green); padding: 6px 14px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; margin-top: var(--space-lg); }
-.detail__source { display: inline-block; margin-top: var(--space-lg); color: var(--accent); font-size: 0.8rem; font-weight: 600; text-decoration: none; }
-.detail__source:hover { text-decoration: underline; }
-.loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 8px; }
+/* ————————————————————— Reiseplaner ————————————————————— */
+.planner { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--pad) 90px; }
+.planner__panel {
+  background: var(--surface); border: 1px solid var(--line-soft);
+  border-radius: 14px; padding: clamp(18px, 3vw, 26px);
+  margin-top: -46px; position: relative; z-index: 600;
+  box-shadow: 0 18px 50px oklch(0% 0 0 / 0.35);
+}
+.planner__grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap: 14px; align-items: end;
+}
+.planner label {
+  display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 6px;
+}
+.planner input[type=text], .planner select { width: 100%; padding: 10px 13px; font-size: 0.95rem; }
+.btn-go {
+  font-weight: 700; font-size: 0.95rem; letter-spacing: 0.01em;
+  padding: 10px 26px; border: none; border-radius: 8px;
+  background: var(--amber); color: var(--bg-deep); cursor: pointer;
+  transition: background .15s ease; white-space: nowrap;
+}
+.btn-go:hover { background: var(--amber-strong); }
+.planner__extra { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.planner__extra select { font-size: 0.84rem; padding: 7px 30px 7px 11px; }
+.planner__status { padding: 22px 4px 8px; color: var(--ink-3); font-size: 0.95rem; }
+.planner__status.error { color: var(--red); }
+.spinner {
+  display: inline-block; width: 15px; height: 15px; vertical-align: -2px; margin-right: 9px;
+  border: 2px solid var(--line); border-top-color: var(--amber);
+  border-radius: 50%; animation: spin .6s linear infinite;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@media (max-width: 768px) {
-  .planner__form { grid-template-columns: 1fr 1fr; }
-  .entry--featured { grid-template-columns: 1fr; gap: var(--space-md); padding: var(--space-lg) 0; }
-  .detail__content { grid-template-columns: 1fr; gap: var(--space-xl); }
-  .detail__gallery img { height: 200px; }
-  .result { grid-template-columns: 1fr auto; }
-  .result__thumb { display: none; }
+.result {
+  display: grid; grid-template-columns: 104px 1fr auto; gap: 18px; align-items: center;
+  padding: 16px 0; border-bottom: 1px solid var(--line-soft); cursor: pointer;
 }
-@media (max-width: 480px) {
-  .controls { flex-direction: column; }
-  .controls__count { margin-left: 0; }
-  .hero__map { height: 280px; }
-  .planner__form { grid-template-columns: 1fr; }
+.result:hover .entry__name { color: var(--amber-strong); }
+.result__right { text-align: right; }
+.result__dur {
+  font-family: var(--serif); font-weight: 600; font-size: 1.5rem;
+  color: var(--amber); line-height: 1.1; font-variant-numeric: tabular-nums;
 }
-.leaflet-popup-content-wrapper { border-radius: 6px; font-family: var(--font-display); font-weight: 700; }
+.result__dur small { font-size: 0.72rem; font-family: var(--sans); font-weight: 500; color: var(--ink-3); margin-left: 2px; }
+.result__sub { font-size: 0.72rem; color: var(--ink-3); margin-top: 3px; max-width: 180px; }
+
+/* ————————————————————— Detailseite ————————————————————— */
+.detail__hero { position: relative; background: var(--bg-deep); }
+.detail__hero-img { width: 100%; height: clamp(300px, 58vh, 580px); object-fit: cover; display: block; filter: saturate(0.95); }
+.detail__hero--noimg { height: clamp(180px, 30vh, 300px); }
+.detail__hero-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, var(--bg) 2%, oklch(17% 0.012 55 / 0.6) 26%, oklch(17% 0.012 55 / 0.15) 55%, oklch(17% 0.012 55 / 0.35));
+}
+.btn-back {
+  position: absolute; z-index: 20;
+  top: calc(14px + env(safe-area-inset-top)); left: var(--pad);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: oklch(14% 0.011 55 / 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid oklch(93% 0.016 80 / 0.16); color: var(--ink);
+  padding: 8px 16px; border-radius: 99px; cursor: pointer; font-size: 0.86rem; font-weight: 600;
+  text-decoration: none;
+}
+.btn-back:hover { border-color: var(--amber-dim); color: var(--amber-strong); }
+.detail__head {
+  position: absolute; inset: auto 0 0 0; padding: 0 var(--pad) 26px;
+}
+.detail__head-inner { max-width: var(--max-w); margin: 0 auto; }
+.detail__title {
+  font-family: var(--serif); font-weight: 560;
+  font-size: clamp(2rem, 5.5vw, 3.6rem);
+  font-variation-settings: "opsz" 110;
+  line-height: 1.04; letter-spacing: -0.015em; margin-top: 8px; text-wrap: balance;
+  text-shadow: 0 2px 24px oklch(0% 0 0 / 0.45);
+}
+.detail__body { max-width: var(--max-w); margin: 0 auto; padding: 26px var(--pad) 100px; }
+.detail__lead {
+  font-family: var(--serif); font-weight: 380; font-style: italic;
+  font-size: clamp(1.08rem, 2.4vw, 1.3rem); line-height: 1.6;
+  color: var(--ink-2); max-width: 62ch;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.btn-action {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.86rem; font-weight: 650; text-decoration: none; cursor: pointer;
+  padding: 9px 18px; border-radius: 99px;
+  background: var(--amber); color: var(--bg-deep); border: 1px solid transparent;
+  transition: background .15s ease;
+}
+.btn-action:hover { background: var(--amber-strong); }
+.btn-action svg { width: 15px; height: 15px; }
+.btn-action--ghost { background: transparent; color: var(--ink-2); border-color: var(--line); }
+.btn-action--ghost:hover { background: transparent; color: var(--amber-strong); border-color: var(--amber-dim); }
+.badge-hike {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.86rem; font-weight: 650; padding: 9px 18px; border-radius: 99px;
+  background: var(--green-wash); color: var(--green);
+}
+.detail__cols { display: grid; grid-template-columns: 1fr 320px; gap: clamp(30px, 6vw, 70px); margin-top: 44px; }
+.prose section + section { margin-top: 40px; }
+.prose h3 {
+  font-family: var(--serif); font-weight: 600; font-size: 1.35rem;
+  letter-spacing: -0.005em; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 14px;
+}
+.prose h3::after { content: ''; height: 1px; flex: 1; background: var(--line-soft); }
+.prose p {
+  font-family: var(--serif); font-weight: 370; font-size: 1.02rem;
+  color: var(--ink-2); line-height: 1.78; max-width: 66ch; margin-bottom: 14px;
+  font-variation-settings: "opsz" 12;
+}
+.prose section:first-of-type > p:first-of-type::first-letter {
+  font-family: var(--serif); font-weight: 600; font-size: 3.3em;
+  float: left; line-height: 0.82; margin: 6px 10px 0 0; color: var(--amber);
+}
+.gallery {
+  display: flex; gap: 12px; overflow-x: auto; margin-top: 34px;
+  padding-bottom: 10px; scroll-snap-type: x mandatory; scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.gallery a { flex-shrink: 0; scroll-snap-align: start; border-radius: 8px; overflow: hidden; }
+.gallery img { height: clamp(170px, 26vw, 260px); display: block; filter: saturate(0.92); transition: filter .2s ease; }
+.gallery a:hover img { filter: saturate(1.05); }
+.sidebar { min-width: 0; }
+.side-map { height: 230px; border-radius: var(--radius); border: 1px solid var(--line-soft); background: var(--bg-deep); }
+.facts { margin-top: 22px; font-size: 0.88rem; }
+.facts dt {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 14px;
+}
+.facts dt:first-child { margin-top: 0; }
+.facts dd { color: var(--ink); margin-top: 1px; }
+.side-src {
+  display: inline-block; margin-top: 26px; color: var(--ink-3); font-size: 0.8rem;
+  text-decoration: none; border-bottom: 1px solid var(--line);
+  padding-bottom: 1px; transition: color .15s ease;
+}
+.side-src:hover { color: var(--amber); border-color: var(--amber-dim); }
+
+/* ————————————————————— Fußzeile ————————————————————— */
+footer {
+  border-top: 1px solid var(--line-soft); padding: 30px var(--pad) calc(30px + env(safe-area-inset-bottom));
+  text-align: center; font-size: 0.8rem; color: var(--ink-3);
+}
+footer a { color: var(--ink-2); text-decoration: none; border-bottom: 1px solid var(--line); }
+footer a:hover { color: var(--amber); }
+
+/* ————————————————————— Leaflet-Anpassung ————————————————————— */
+.leaflet-container { font-family: var(--sans); background: var(--bg-deep); }
+.leaflet-popup-content-wrapper {
+  background: var(--elevated); color: var(--ink); border-radius: 8px;
+  box-shadow: 0 8px 30px oklch(0% 0 0 / 0.5);
+}
+.leaflet-popup-content { margin: 10px 14px; font-size: 0.85rem; line-height: 1.45; }
+.leaflet-popup-content b { font-family: var(--serif); font-size: 0.98rem; font-weight: 600; }
+.leaflet-popup-tip { background: var(--elevated); }
+.leaflet-popup-close-button { color: var(--ink-3) !important; }
+.leaflet-bar a { background: var(--elevated); color: var(--ink); border-bottom-color: var(--line); }
+.leaflet-bar a:hover { background: var(--surface); color: var(--amber); }
+.leaflet-control-attribution { background: oklch(14% 0.011 55 / 0.7) !important; color: var(--ink-3) !important; }
+.leaflet-control-attribution a { color: var(--ink-2) !important; }
+
+.view { display: none; }
+.view.active { display: block; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ————————————————————— Responsiv ————————————————————— */
+@media (max-width: 860px) {
+  .detail__cols { grid-template-columns: 1fr; gap: 40px; }
+  .planner__grid { grid-template-columns: 1fr 1fr; }
+  .planner__grid .field--origin { grid-column: 1 / -1; }
+  .btn-go { width: 100%; }
+}
+@media (max-width: 640px) {
+  .planner__panel { margin-top: 14px; box-shadow: none; }
+  .hero__scrim--trip { padding-bottom: 26px; }
+  .entry--featured { grid-template-columns: 1fr; gap: 16px; padding: 26px 0; }
+  .entry--featured:nth-of-type(even) .entry__img { order: 0; }
+  .entry__teaser { -webkit-line-clamp: 2; font-size: 0.97rem; }
+  .entry--compact { grid-template-columns: 88px 1fr; gap: 14px; }
+  .entry__thumb { width: 88px; height: 64px; }
+  .filterbar__inner { padding: 10px var(--pad); }
+  .filterbar .field--search { flex-basis: 100%; }
+  .filterbar select { flex: 1; min-width: 0; font-size: 0.82rem; }
+  .count { flex-basis: 100%; margin-left: 0; text-align: right; }
+  .planner__grid { grid-template-columns: 1fr; }
+  .result { grid-template-columns: 74px 1fr auto; gap: 12px; }
+  .entry__thumb--result { width: 74px; height: 56px; }
+  .result__sub { max-width: 110px; }
+  .topnav a { padding: 7px 12px; font-size: 0.84rem; }
+}
 </style>
 </head>
 <body>
-<nav class="mode-bar">
-  <button class="mode-btn active" data-mode="browse">Stöbern</button>
-  <button class="mode-btn" data-mode="trip">Reiseplaner</button>
-</nav>
 
-<div class="view" id="browse-view">
+<header class="topbar">
+  <a class="wordmark" href="#/" aria-label="Burgen in Deutschland — Startseite">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21V8l2-1V4h2v2h2V4h2v2h2V4h2v2h2V4h2v3l2 1v13h-7v-4a2 2 0 1 0-4 0v4H3zm4-8h2v-2H7v2zm8 0h2v-2h-2v2z"/></svg>
+    Burgen
+  </a>
+  <nav class="topnav" aria-label="Hauptnavigation">
+    <a href="#/" id="nav-browse" class="active">Entdecken</a>
+    <a href="#/planer" id="nav-trip">Reiseplaner</a>
+  </nav>
+</header>
+
+<!-- ————————— Entdecken ————————— -->
+<main class="view active" id="view-browse">
   <div class="hero">
-    <div class="hero__map" id="map-browse"></div>
-    <div class="hero__overlay">
-      <h1 class="hero__title">Burgen in <span>Deutschland</span></h1>
-      <p class="hero__subtitle" id="browse-subtitle"></p>
+    <div class="hero__map" id="map-browse" aria-label="Karte aller Burgen"></div>
+    <div class="hero__scrim">
+      <div class="hero__inner">
+        <h1>Burgen in <em>Deutschland</em></h1>
+        <p id="browse-sub">Eine Entdeckungsreise durch tausend Jahre Burgengeschichte.</p>
+      </div>
     </div>
   </div>
-  <div class="controls" id="browse-controls">
-    <input class="controls__search" type="text" id="search" placeholder="Burg suchen...">
-    <select id="filter-state"><option value="">Alle Bundesländer</option></select>
-    <select id="filter-erhaltung"><option value="">Erhaltung</option></select>
-    <select id="filter-typ"><option value="">Burgtyp</option></select>
-    <span class="controls__count"><span id="count">0</span> Burgen</span>
+  <div class="filterbar">
+    <div class="filterbar__inner">
+      <div class="field field--search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="text" id="search" placeholder="Burg suchen…" aria-label="Burg suchen">
+      </div>
+      <select id="f-state" aria-label="Bundesland"><option value="">Bundesland</option></select>
+      <select id="f-erhaltung" aria-label="Erhaltung"><option value="">Erhaltung</option></select>
+      <select id="f-typ" aria-label="Burgtyp"><option value="">Burgtyp</option></select>
+      <span class="count"><b id="count">…</b> Burgen</span>
+    </div>
   </div>
-  <div class="stream" id="browse-stream"></div>
-  <p class="no-results" id="no-results-browse">Keine Burgen gefunden.</p>
-</div>
+  <div class="stream" id="stream" role="list"></div>
+  <div class="empty" id="empty">
+    <p>Keine Burg passt zu dieser Suche.</p>
+    <button id="reset-filters" type="button">Filter zurücksetzen</button>
+  </div>
+</main>
 
-<div class="view hidden" id="trip-view">
+<!-- ————————— Reiseplaner ————————— -->
+<main class="view" id="view-trip">
   <div class="hero">
-    <div class="hero__map" id="map-trip"></div>
-    <div class="hero__overlay">
-      <h1 class="hero__title">Burgen<span>planer</span></h1>
-      <p class="hero__subtitle">Finde Burgen in deiner Reichweite</p>
+    <div class="hero__map" id="map-trip" aria-label="Karte der erreichbaren Burgen"></div>
+    <div class="hero__scrim hero__scrim--trip">
+      <div class="hero__inner">
+        <h1>Der <em>Burgenplaner</em></h1>
+        <p>Welche Burgen erreichst du von zu Hause aus — mit Zug oder Auto?</p>
+      </div>
     </div>
   </div>
   <div class="planner">
-    <div class="planner__form" id="trip-form">
-      <div class="planner__field">
-        <label for="origin">Startpunkt</label>
-        <input type="text" id="origin" placeholder="z.B. Leipzig Hbf">
+    <form class="planner__panel" id="trip-form">
+      <div class="planner__grid">
+        <div class="field--origin">
+          <label for="origin">Startpunkt</label>
+          <input type="text" id="origin" placeholder="z. B. Leipzig Hbf" autocomplete="off">
+        </div>
+        <div>
+          <label for="mode">Verkehrsmittel</label>
+          <select id="mode">
+            <option value="train">Zug</option>
+            <option value="car">Auto</option>
+          </select>
+        </div>
+        <div>
+          <label for="max-time">Max. Fahrzeit</label>
+          <select id="max-time">
+            <option value="60">1 Stunde</option>
+            <option value="120" selected>2 Stunden</option>
+            <option value="180">3 Stunden</option>
+            <option value="240">4 Stunden</option>
+          </select>
+        </div>
+        <button class="btn-go" type="submit">Burgen finden</button>
       </div>
-      <div class="planner__field">
-        <label for="mode">Verkehrsmittel</label>
-        <select id="mode">
-          <option value="train">Zug</option>
-          <option value="car">Auto</option>
+      <div class="planner__extra">
+        <select id="t-erhaltung" aria-label="Erhaltung"><option value="">Erhaltung</option></select>
+        <select id="t-typ" aria-label="Burgtyp"><option value="">Burgtyp</option></select>
+        <select id="t-hikes" aria-label="Wanderbarkeit">
+          <option value="">Wanderungen</option>
+          <option value="10">10+ Wanderungen</option>
+          <option value="50">50+ Wanderungen</option>
+          <option value="200">200+ Wanderungen</option>
         </select>
       </div>
-      <div class="planner__field">
-        <label for="max-time">Max. Fahrzeit</label>
-        <select id="max-time">
-          <option value="60">1 Stunde</option>
-          <option value="120" selected>2 Stunden</option>
-          <option value="180">3 Stunden</option>
-          <option value="240">4 Stunden</option>
-        </select>
-      </div>
-      <button class="planner__go" onclick="runTrip()">Suchen</button>
-    </div>
-    <div class="planner__filters">
-      <select id="trip-erhaltung"><option value="">Erhaltung</option></select>
-      <select id="trip-typ"><option value="">Burgtyp</option></select>
-      <select id="trip-hikes">
-        <option value="">Wanderbarkeit</option>
-        <option value="10">10+ Wanderungen</option>
-        <option value="50">50+ Wanderungen</option>
-        <option value="200">200+ Wanderungen</option>
-      </select>
-    </div>
-    <div class="planner__status" id="trip-status"></div>
+    </form>
+    <div class="planner__status" id="trip-status">Gib einen Startpunkt ein — die Suche fragt live Bahn- und Straßendaten ab.</div>
     <div id="trip-results"></div>
   </div>
-</div>
+</main>
 
-<div class="detail-view" id="detail-view"></div>
+<!-- ————————— Detail ————————— -->
+<main class="view" id="view-detail"></main>
+
+<footer>
+  Daten: <a href="https://www.ebidat.de" target="_blank" rel="noopener">EBIDAT — Europäisches Burgeninstitut</a>
+  · Wanderungen: Komoot · Verbindungen: Deutsche Bahn / OSRM
+</footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+'use strict';
 const HAFAS = 'https://v6.db.transport.rest';
 const OSRM = 'https://router.project-osrm.org';
-let browseMap, tripMap, fullCastles = [], allCastles = [], currentMode = 'browse';
-const browseMarkers = L.layerGroup(), tripMarkers = L.layerGroup();
+const MARKER = { radius: 5.5, fillColor: '#e5b567', color: '#191411', weight: 1.5, fillOpacity: 0.92 };
 
-function tileLayer() {
-  return L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}@2x.png', { attribution: '&copy; OSM &copy; CARTO', maxZoom: 18 });
+let castles = [];            // full records
+let browseMap, tripMap, detailMap = null;
+const browseMarkers = L.layerGroup(), tripMarkers = L.layerGroup();
+let browseScroll = 0;        // scroll position to restore when returning from detail
+let lastListView = 'browse'; // which list view the user came from
+
+const $ = id => document.getElementById(id);
+const esc = s => { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+function tiles() {
+  return L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 18,
+  });
 }
-function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371, rad = d => d * Math.PI / 180;
@@ -242,25 +547,121 @@ function summarize(c) {
     typ: meta['Klassifizierung'] || '',
     erhaltung: meta['Erhaltung - Heutiger Zustand'] || '',
     datierung: meta['Datierung-Beginn'] || '',
-    kurzansprache: meta['Kurzansprache'] || '',
+    teaser: meta['Kurzansprache'] || '',
     image: (c.images && c.images.length) ? c.images[0].thumb : null,
-    hike_count: komoot.hike_count || 0,
-    avg_rating: komoot.avg_rating,
+    hikes: komoot.hike_count || 0,
   };
 }
 
-function computeFilters(castles) {
-  const states = new Set(), types = new Set(), erhaltung = new Set();
-  castles.forEach(c => {
-    const meta = c.meta || {};
-    if (meta['Bundesland']) states.add(meta['Bundesland']);
-    (meta['Klassifizierung'] || '').split(',').forEach(t => { t = t.trim(); if (t) types.add(t); });
-    if (meta['Erhaltung - Heutiger Zustand']) erhaltung.add(meta['Erhaltung - Heutiger Zustand']);
-  });
-  const sortDe = s => [...s].sort((a,b) => a.localeCompare(b,'de'));
-  return { states: sortDe(states), types: sortDe(types), erhaltung: sortDe(erhaltung) };
+function googleMapsUrl(c) {
+  const meta = c.meta || {};
+  const q = [c.name, meta['Stadt / Gemeinde'], meta['Bundesland']].filter(Boolean).join(', ');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
 }
 
+/* ————————— Routing (#/, #/planer, #/burg/ID) ————————— */
+function route() {
+  const h = location.hash;
+  const burg = h.match(/^#\/burg\/(\d+)/);
+  if (burg) { showDetail(parseInt(burg[1], 10)); return; }
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+  $('view-detail').innerHTML = '';
+  const view = h === '#/planer' ? 'trip' : 'browse';
+  lastListView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $(view === 'trip' ? 'view-trip' : 'view-browse').classList.add('active');
+  $('nav-browse').classList.toggle('active', view === 'browse');
+  $('nav-trip').classList.toggle('active', view === 'trip');
+  setTimeout(() => {
+    (view === 'trip' ? tripMap : browseMap)?.invalidateSize();
+    if (view === 'browse' && browseScroll) { window.scrollTo(0, browseScroll); browseScroll = 0; }
+  }, 40);
+}
+
+function openDetail(id) {
+  if (lastListView === 'browse') browseScroll = window.scrollY;
+  location.hash = '#/burg/' + id;
+}
+
+/* ————————— Entdecken ————————— */
+function computeFilters(list) {
+  const states = new Set(), types = new Set(), erhaltung = new Set();
+  list.forEach(c => {
+    const m = c.meta || {};
+    if (m['Bundesland']) states.add(m['Bundesland']);
+    (m['Klassifizierung'] || '').split(',').forEach(t => { t = t.trim(); if (t) types.add(t); });
+    if (m['Erhaltung - Heutiger Zustand']) erhaltung.add(m['Erhaltung - Heutiger Zustand']);
+  });
+  const de = s => [...s].sort((a, b) => a.localeCompare(b, 'de'));
+  return { states: de(states), types: de(types), erhaltung: de(erhaltung) };
+}
+
+function populateFilters(f) {
+  const fill = (id, values) => {
+    const el = $(id);
+    values.forEach(v => { const o = document.createElement('option'); o.value = v.toLowerCase(); o.textContent = v; el.appendChild(o); });
+  };
+  fill('f-state', f.states);
+  fill('f-erhaltung', f.erhaltung); fill('t-erhaltung', f.erhaltung);
+  fill('f-typ', f.types); fill('t-typ', f.types);
+}
+
+function entryFeatured(c) {
+  const chips = [c.typ, c.datierung].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('');
+  const hike = c.hikes > 0 ? `<span class="chip chip--hike">🥾 ${c.hikes} Wanderungen</span>` : '';
+  return `<article class="entry entry--featured" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.name)}">
+    <div class="entry__img"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>
+    <div>
+      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name-lg">${esc(c.name)}</h2>
+      <p class="entry__teaser">${esc(c.teaser)}</p>
+      <div class="chips">${chips}${hike}</div>
+    </div>
+  </article>`;
+}
+
+function entryCompact(c) {
+  const meta = [c.typ, c.datierung].filter(Boolean).join(' · ');
+  const hike = c.hikes > 0 ? ` <span class="hike">· 🥾 ${c.hikes}</span>` : '';
+  return `<article class="entry entry--compact" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.name)}">
+    <div class="entry__thumb"><img src="${c.image}" alt="" loading="lazy"></div>
+    <div>
+      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name">${esc(c.name)}</h2>
+      <p class="entry__meta">${esc(meta)}${hike}</p>
+    </div>
+  </article>`;
+}
+
+function renderBrowse(list) {
+  $('count').textContent = list.length;
+  browseMarkers.clearLayers();
+  const stream = $('stream');
+  stream.innerHTML = list.map((c, i) => (i % 4 === 0) ? entryFeatured(c) : entryCompact(c)).join('');
+  $('empty').style.display = list.length ? 'none' : 'block';
+  list.forEach(c => {
+    if (c.lat && c.lon) {
+      const m = L.circleMarker([c.lat, c.lon], MARKER);
+      m.bindPopup(`<b>${esc(c.name)}</b><br><small>${esc(c.state)}</small>`);
+      m.on('click', () => openDetail(c.id));
+      browseMarkers.addLayer(m);
+    }
+  });
+}
+
+function filterBrowse() {
+  const q = $('search').value.trim().toLowerCase();
+  const st = $('f-state').value, er = $('f-erhaltung').value, ty = $('f-typ').value;
+  renderBrowse(castles.map(summarize).filter(c => {
+    if (q && !c.name.toLowerCase().includes(q) && !c.kreis.toLowerCase().includes(q)) return false;
+    if (st && c.state.toLowerCase() !== st) return false;
+    if (er && !c.erhaltung.toLowerCase().includes(er)) return false;
+    if (ty && !c.typ.toLowerCase().includes(ty)) return false;
+    return true;
+  }));
+}
+
+/* ————————— Reiseplaner ————————— */
 async function resolveStation(name) {
   try {
     const r = await fetch(`${HAFAS}/locations?query=${encodeURIComponent(name)}&results=1`);
@@ -269,7 +670,21 @@ async function resolveStation(name) {
     if (!Array.isArray(data) || !data.length) return null;
     const s = data[0];
     return { id: s.id, name: s.name, lat: s.location?.latitude, lon: s.location?.longitude };
-  } catch(e) { return null; }
+  } catch (e) { return null; }
+}
+
+// HAFAS first (also yields the station id needed for train journeys);
+// falls back to Nominatim so car routing still works when HAFAS is down.
+async function geocode(name) {
+  const st = await resolveStation(name);
+  if (st && st.lat != null) return st;
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=de&q=${encodeURIComponent(name)}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!Array.isArray(d) || !d.length) return null;
+    return { id: null, name: d[0].display_name.split(',')[0], lat: +d[0].lat, lon: +d[0].lon };
+  } catch (e) { return null; }
 }
 
 async function getJourney(fromId, toId) {
@@ -280,7 +695,7 @@ async function getJourney(fromId, toId) {
     const j = (data.journeys || [])[0];
     if (!j || !(j.legs || []).length) return null;
     const legs = j.legs;
-    const dep = legs[0].departure, arr = legs[legs.length-1].arrival;
+    const dep = legs[0].departure, arr = legs[legs.length - 1].arrival;
     if (!dep || !arr) return null;
     const lines = legs.filter(l => l.line).map(l => l.line.name || '');
     return {
@@ -288,7 +703,7 @@ async function getJourney(fromId, toId) {
       changes: Math.max(0, lines.length - 1),
       lines,
     };
-  } catch(e) { return null; }
+  } catch (e) { return null; }
 }
 
 async function osrmTable(origin, cands, annotations) {
@@ -300,7 +715,7 @@ async function osrmTable(origin, cands, annotations) {
 
 async function mapLimit(items, limit, fn) {
   const results = []; let i = 0;
-  await Promise.all(Array.from({length: Math.min(limit, items.length)}, async () => {
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (i < items.length) { const idx = i++; results[idx] = await fn(items[idx]); }
   }));
   return results;
@@ -308,18 +723,17 @@ async function mapLimit(items, limit, fn) {
 
 async function planCar(origin, cands, maxMin) {
   let table = null;
-  try { table = await osrmTable(origin, cands, 'duration,distance'); } catch(e) {}
+  try { table = await osrmTable(origin, cands, 'duration,distance'); } catch (e) {}
   if (!table) return [];
   const dur = (table.durations || [[]])[0], dist = (table.distances || [[]])[0];
   const out = [];
   cands.forEach((c, i) => {
-    const d = dur[i+1];
+    const d = dur[i + 1];
     if (d == null) return;
     const min = Math.round(d / 60);
     if (min > maxMin) return;
     const s = summarize(c);
-    s.distance_km = (dist && dist[i+1] != null) ? Math.round(dist[i+1] / 100) / 10 : null;
-    s.travel = { duration_min: min, distance_km: s.distance_km };
+    s.travel = { duration_min: min, distance_km: (dist && dist[i + 1] != null) ? Math.round(dist[i + 1] / 100) / 10 : null };
     out.push(s);
   });
   return out;
@@ -333,159 +747,233 @@ async function planTrain(origin, cands, maxMin) {
     const table = await osrmTable(origin, withStation, 'duration');
     const dur = table ? (table.durations || [[]])[0] : null;
     if (dur) {
-      const scored = withStation.map((c, i) => [c, dur[i+1] != null ? Math.round(dur[i+1] / 60) : 999]);
+      const scored = withStation.map((c, i) => [c, dur[i + 1] != null ? Math.round(dur[i + 1] / 60) : 999]);
       scored.sort((a, b) => a[1] - b[1]);
       top = scored.filter(([, d]) => d <= maxMin * 2).slice(0, 15).map(([c]) => c);
     }
-  } catch(e) {}
+  } catch (e) {}
   if (!top) top = [...withStation].sort((a, b) =>
     haversineKm(origin.lat, origin.lon, a.lat, a.lon) - haversineKm(origin.lat, origin.lon, b.lat, b.lon)).slice(0, 15);
   const results = await mapLimit(top, 5, async c => {
     const j = await getJourney(origin.id, c.station.station_id);
     if (!j || j.duration_min > maxMin) return null;
     const s = summarize(c);
-    s.distance_km = Math.round(haversineKm(origin.lat, origin.lon, c.lat, c.lon) * 10) / 10;
     s.travel = j;
     return s;
   });
   return results.filter(Boolean);
 }
 
-async function init() {
-  fullCastles = await fetch('data/castles_enriched.json').then(r=>r.json());
-  allCastles = fullCastles.map(summarize);
-  populateFilters(computeFilters(fullCastles));
-  browseMap = L.map('map-browse', {zoomControl:false}).setView([51,10.4],6);
-  L.control.zoom({position:'topright'}).addTo(browseMap); tileLayer().addTo(browseMap); browseMarkers.addTo(browseMap);
-  tripMap = L.map('map-trip', {zoomControl:false}).setView([51,10.4],6);
-  L.control.zoom({position:'topright'}).addTo(tripMap); tileLayer().addTo(tripMap); tripMarkers.addTo(tripMap);
-  renderBrowse(allCastles);
-  document.getElementById('browse-subtitle').textContent = allCastles.length + ' Burgen aus der EBIDAT-Datenbank';
+function resultRow(c, mode) {
+  const dur = c.travel?.duration_min;
+  const durTxt = dur != null ? `${dur}<small>min</small>` : '–';
+  let sub;
+  if (mode === 'train') {
+    const lines = (c.travel?.lines || []).join(' → ');
+    const ch = c.travel?.changes != null ? `${c.travel.changes} Umstiege` : '';
+    sub = [lines, ch].filter(Boolean).join(' · ');
+  } else {
+    sub = c.travel?.distance_km != null ? `${c.travel.distance_km} km` : '';
+  }
+  const hike = c.hikes > 0 ? ` <span class="hike">· 🥾 ${c.hikes}</span>` : '';
+  return `<div class="result" data-id="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}">
+    <div class="entry__thumb entry__thumb--result"><img src="${c.image}" alt="" loading="lazy"></div>
+    <div>
+      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name">${esc(c.name)}</h2>
+      <p class="entry__meta">${esc(c.typ)}${hike}</p>
+    </div>
+    <div class="result__right">
+      <div class="result__dur">${durTxt}</div>
+      <div class="result__sub">${esc(sub)}</div>
+    </div>
+  </div>`;
 }
 
-function populateFilters(f) {
-  [['filter-state'],['filter-erhaltung','trip-erhaltung'],['filter-typ','trip-typ']].forEach(([browse,trip],i) => {
-    const data = [f.states, f.erhaltung, f.types][i];
-    [browse,trip].filter(Boolean).forEach(id => { const el=document.getElementById(id); if(!el)return; data.forEach(s => { const o=document.createElement('option'); o.value=s.toLowerCase(); o.textContent=s; el.appendChild(o); }); });
-  });
-}
-
-function renderBrowse(list) {
-  const stream = document.getElementById('browse-stream'), noRes = document.getElementById('no-results-browse');
-  document.getElementById('count').textContent = list.length;
-  browseMarkers.clearLayers(); stream.innerHTML = '';
-  if (!list.length) { noRes.style.display='block'; return; }
-  noRes.style.display='none';
-  list.forEach((c,i) => {
-    if (c.lat&&c.lon) { const m=L.circleMarker([c.lat,c.lon],{radius:5,fillColor:'#b54b2a',color:'#fff',weight:1.5,fillOpacity:0.9}); m.bindPopup(`<b>${c.name}</b><br><small>${c.state}</small>`); m.on('click',()=>openDetail(c.id)); browseMarkers.addLayer(m); }
-    stream.innerHTML += (i%5===0&&c.image) ? buildFeatured(c) : buildCompact(c);
-  });
-  stream.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', ()=>openDetail(+el.dataset.id)));
-}
-
-function buildFeatured(c) {
-  const img = c.image ? `<div class="entry__img"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>` : '';
-  const hike = c.hike_count>0 ? `<span class="tag tag--hike">${c.hike_count} Wanderungen</span>` : '';
-  const tags = [c.typ,c.datierung].filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
-  return `<article class="entry--featured" data-id="${c.id}" role="button" tabindex="0">${img}<div class="entry__body"><p class="entry__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3 class="entry__name--lg">${esc(c.name)}</h3><p class="entry__teaser">${esc((c.kurzansprache||'').substring(0,220))}</p><div class="entry__tags">${tags}${hike}</div></div></article>`;
-}
-
-function buildCompact(c) {
-  const thumb = c.image ? `<div class="entry__thumb"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>` : '';
-  const meta = [c.typ,c.datierung].filter(Boolean).join(' · ');
-  const hike = c.hike_count>0 ? ` · ${c.hike_count} Wanderungen` : '';
-  return `<article class="entry--compact" data-id="${c.id}" role="button" tabindex="0">${thumb}<div class="entry__body"><p class="entry__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3 class="entry__name">${esc(c.name)}</h3><p class="entry__meta-line">${esc(meta)}${hike}</p></div></article>`;
-}
-
-function filterBrowse() {
-  const q=document.getElementById('search').value.toLowerCase(), st=document.getElementById('filter-state').value, er=document.getElementById('filter-erhaltung').value, ty=document.getElementById('filter-typ').value;
-  renderBrowse(allCastles.filter(c => {
-    if (q && !c.name.toLowerCase().includes(q)) return false;
-    if (st && c.state.toLowerCase()!==st) return false;
-    if (er && !(c.erhaltung||'').toLowerCase().includes(er)) return false;
-    if (ty && !(c.typ||'').toLowerCase().includes(ty)) return false;
-    return true;
-  }));
-}
-
-async function runTrip() {
-  const origin=document.getElementById('origin').value.trim();
-  if (!origin) return;
-  const mode=document.getElementById('mode').value, maxTime=document.getElementById('max-time').value;
-  const er=document.getElementById('trip-erhaltung').value, ty=document.getElementById('trip-typ').value, mh=document.getElementById('trip-hikes').value;
-  const status=document.getElementById('trip-status'), results=document.getElementById('trip-results');
-  status.className='planner__status'; status.innerHTML=`<span class="loading-spinner"></span> Suche Verbindungen von ${esc(origin)}...`; results.innerHTML=''; tripMarkers.clearLayers();
+async function runTrip(ev) {
+  if (ev) ev.preventDefault();
+  const origin = $('origin').value.trim();
+  if (!origin) { $('origin').focus(); return; }
+  const mode = $('mode').value, maxMin = parseInt($('max-time').value, 10);
+  const er = $('t-erhaltung').value, ty = $('t-typ').value, mh = parseInt($('t-hikes').value || '0', 10);
+  const status = $('trip-status'), results = $('trip-results');
+  status.className = 'planner__status';
+  status.innerHTML = `<span class="spinner" aria-hidden="true"></span>Suche Verbindungen ab ${esc(origin)} …`;
+  results.innerHTML = ''; tripMarkers.clearLayers();
   try {
-    const originInfo = await resolveStation(origin);
-    if (!originInfo) { status.className='planner__status error'; status.textContent=`Station '${origin}' nicht gefunden`; return; }
-    const maxMin = parseInt(maxTime), minHikes = mh ? parseInt(mh) : 0;
-    const candidates = fullCastles.filter(c => {
+    const o = await geocode(origin);
+    if (!o) { status.className = 'planner__status error'; status.textContent = `„${origin}" wurde nicht gefunden — versuch es mit einem Bahnhofs- oder Ortsnamen.`; return; }
+    if (mode === 'train' && !o.id) {
+      status.className = 'planner__status error';
+      status.textContent = 'Die Bahn-Auskunft ist gerade nicht erreichbar — probier es später nochmal oder wechsle auf Auto.';
+      return;
+    }
+    const cands = castles.filter(c => {
       if (c.lat == null) return false;
-      const meta = c.meta || {};
-      if (ty && !(meta['Klassifizierung']||'').toLowerCase().includes(ty)) return false;
-      if (er && !(meta['Erhaltung - Heutiger Zustand']||'').toLowerCase().includes(er)) return false;
-      if (minHikes && ((c.komoot||{}).hike_count||0) < minHikes) return false;
+      const m = c.meta || {};
+      if (ty && !(m['Klassifizierung'] || '').toLowerCase().includes(ty)) return false;
+      if (er && !(m['Erhaltung - Heutiger Zustand'] || '').toLowerCase().includes(er)) return false;
+      if (mh && ((c.komoot || {}).hike_count || 0) < mh) return false;
       return true;
     });
-    const found = mode === 'car' ? await planCar(originInfo, candidates, maxMin) : await planTrain(originInfo, candidates, maxMin);
-    found.sort((a,b) => ((a.travel||{}).duration_min ?? 999) - ((b.travel||{}).duration_min ?? 999));
-    const data = { origin: originInfo, count: found.length, max_minutes: maxMin, castles: found };
-    status.textContent=`${data.count} erreichbare Burgen von ${data.origin.name} (max. ${data.max_minutes} min)`;
-    if (data.origin.lat&&data.origin.lon) {
-      const om=L.marker([data.origin.lat,data.origin.lon],{icon:L.divIcon({className:'',html:'<div style="width:14px;height:14px;background:oklch(50% 0.2 260);border:2.5px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]})}); om.bindPopup(`<b>${data.origin.name}</b><br><small>Startpunkt</small>`); tripMarkers.addLayer(om);
+    const found = mode === 'car' ? await planCar(o, cands, maxMin) : await planTrain(o, cands, maxMin);
+    found.sort((a, b) => ((a.travel || {}).duration_min ?? 999) - ((b.travel || {}).duration_min ?? 999));
+    status.textContent = found.length
+      ? `${found.length} Burgen erreichbar ab ${o.name} (max. ${maxMin} min ${mode === 'car' ? 'Fahrt' : 'Zugfahrt'})`
+      : `Keine Burg in ${maxMin} min ab ${o.name} erreichbar — probier mehr Fahrzeit.`;
+    if (o.lat && o.lon) {
+      const om = L.marker([o.lat, o.lon], { icon: L.divIcon({ className: '', html: '<div style="width:14px;height:14px;background:#7eb4e2;border:2.5px solid #191411;border-radius:50%;box-shadow:0 0 0 3px rgba(126,180,226,.3)"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }) });
+      om.bindPopup(`<b>${esc(o.name)}</b><br><small>Startpunkt</small>`);
+      tripMarkers.addLayer(om);
     }
-    data.castles.forEach(c => {
-      if (c.lat&&c.lon) { const m=L.circleMarker([c.lat,c.lon],{radius:6,fillColor:'#b54b2a',color:'#fff',weight:1.5,fillOpacity:0.9}); m.bindPopup(`<b>${c.name}</b><br>${c.travel?.duration_min?c.travel.duration_min+' min':''}`); m.on('click',()=>openDetail(c.id)); tripMarkers.addLayer(m); }
-      results.innerHTML += buildResult(c,mode);
+    found.forEach(c => {
+      if (c.lat && c.lon) {
+        const m = L.circleMarker([c.lat, c.lon], { ...MARKER, radius: 6.5 });
+        m.bindPopup(`<b>${esc(c.name)}</b><br><small>${c.travel?.duration_min ?? '?'} min</small>`);
+        m.on('click', () => openDetail(c.id));
+        tripMarkers.addLayer(m);
+      }
     });
-    results.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click',()=>openDetail(+el.dataset.id)));
-    if (data.origin.lat&&data.origin.lon) { const b=L.latLngBounds([[data.origin.lat,data.origin.lon]]); data.castles.forEach(c=>{if(c.lat&&c.lon)b.extend([c.lat,c.lon]);}); tripMap.fitBounds(b,{padding:[40,40]}); }
-  } catch(e) { status.className='planner__status error'; status.textContent='Fehler bei der Suche. Bitte nochmal versuchen.'; }
+    results.innerHTML = found.map(c => resultRow(c, mode)).join('');
+    if (o.lat && o.lon) {
+      const b = L.latLngBounds([[o.lat, o.lon]]);
+      found.forEach(c => { if (c.lat && c.lon) b.extend([c.lat, c.lon]); });
+      tripMap.fitBounds(b, { padding: [46, 46] });
+    }
+  } catch (e) {
+    status.className = 'planner__status error';
+    status.textContent = 'Die Suche ist fehlgeschlagen — bitte nochmal versuchen.';
+  }
 }
 
-function buildResult(c,mode) {
-  const thumb=c.image?`<div class="result__thumb"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>`:'<div class="result__thumb"></div>';
-  const dur=c.travel?.duration_min; const durText=dur!=null?`${dur}<small> min</small>`:'?';
-  const lines=(c.travel?.lines||[]).join(' → '); const changes=c.travel?.changes!=null?`${c.travel.changes} Umstiege`:'';
-  const info=mode==='train'?(lines?`${lines}<br>${changes}`:changes):`${c.travel?.distance_km||c.distance_km||''} km`;
-  const hike=c.hike_count>0?`<span class="result__hikes">🥾 ${c.hike_count}</span>`:'';
-  return `<div class="result" data-id="${c.id}" role="button" tabindex="0">${thumb}<div class="result__info"><p class="result__location">${esc(c.kreis)}, ${esc(c.state)}</p><h3>${esc(c.name)}</h3><p class="result__meta">${esc(c.typ||'')} ${hike}</p></div><div class="result__travel"><div class="result__duration">${durText}</div><div class="result__lines">${info}</div></div></div>`;
+/* ————————— Detailseite ————————— */
+function showDetail(id) {
+  const c = castles.find(x => x.id === id);
+  if (!c) { location.hash = ''; return; }
+  const meta = c.meta || {}, sections = c.sections || {}, komoot = c.komoot || {}, station = c.station || {};
+  const loc = [meta['Stadt / Gemeinde'], meta['Kreis'], meta['Bundesland']].filter(Boolean).join(' · ');
+  const heroImg = (c.images && c.images.length) ? c.images[0] : null;
+
+  let facts = '';
+  [['Bundesland'], ['Kreis'], ['Stadt / Gemeinde'], ['Klassifizierung', 'Burgtyp'], ['Typ', 'Lage'], ['Datierung-Beginn', 'Datierung'], ['Erhaltung - Heutiger Zustand', 'Erhaltung'], ['Höhenlage']].forEach(([k, label]) => {
+    const v = meta[k];
+    if (v) facts += `<dt>${esc(label || k)}</dt><dd>${esc(v)}</dd>`;
+  });
+  if (station.station_name) {
+    const dist = station.station_distance_m != null ? ` <small>(${(station.station_distance_m / 1000).toFixed(1).replace('.', ',')} km)</small>` : '';
+    facts += `<dt>Nächster Bahnhof</dt><dd>${esc(station.station_name)}${dist}</dd>`;
+  }
+
+  let prose = '';
+  [['Geschichte'], ['Bauentwicklung'], ['Baubeschreibung'], ['Arch-Untersuchung/Funde', 'Archäologie & Funde']].forEach(([k, label]) => {
+    const txt = sections[k];
+    if (txt) prose += `<section><h3>${esc(label || k)}</h3>${txt.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}</section>`;
+  });
+  if (!prose) prose = `<section><h3>Über diese Burg</h3><p>${esc(meta['Kurzansprache'] || 'Zu dieser Burg liegen noch keine ausführlichen Texte vor.')}</p></section>`;
+
+  const gallery = (c.images || []).length > 1
+    ? `<div class="gallery" aria-label="Bildergalerie">${c.images.map(im =>
+        `<a href="${esc(im.large)}" target="_blank" rel="noopener"><img src="${esc(im.thumb)}" alt="${esc(im.alt || c.name)}" loading="lazy"></a>`).join('')}</div>`
+    : '';
+
+  const hikeBadge = komoot.hike_count > 0
+    ? `<span class="badge-hike">🥾 ${komoot.hike_count} Wanderungen${komoot.avg_rating ? ` · ★ ${komoot.avg_rating}` : ''}</span>` : '';
+
+  $('view-detail').innerHTML = `
+    <div class="detail__hero${heroImg ? '' : ' detail__hero--noimg'}">
+      ${heroImg ? `<img class="detail__hero-img" src="${esc(heroImg.large)}" alt="${esc(heroImg.alt || c.name)}">` : ''}
+      <div class="detail__hero-scrim"></div>
+      <button class="btn-back" type="button" onclick="goBack()" aria-label="Zurück zur Übersicht">← Zurück</button>
+      <div class="detail__head"><div class="detail__head-inner">
+        <p class="eyebrow">${esc(loc)}</p>
+        <h1 class="detail__title">${esc(c.name)}</h1>
+      </div></div>
+    </div>
+    <div class="detail__body">
+      ${meta['Kurzansprache'] ? `<p class="detail__lead">${esc(meta['Kurzansprache'])}</p>` : ''}
+      <div class="actions">
+        <a class="btn-action" href="${esc(googleMapsUrl(c))}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+          Google Maps &amp; Bewertungen
+        </a>
+        ${hikeBadge}
+        <a class="btn-action btn-action--ghost" href="${esc(c.url)}" target="_blank" rel="noopener">Quelle: EBIDAT ↗</a>
+      </div>
+      ${gallery}
+      <div class="detail__cols">
+        <div class="prose">${prose}</div>
+        <aside class="sidebar">
+          ${c.lat ? `<div class="side-map" id="detail-map" aria-label="Lage der Burg"></div>` : ''}
+          <dl class="facts">${facts}</dl>
+          <a class="side-src" href="${esc(c.url)}" target="_blank" rel="noopener">Alle Angaben: EBIDAT, Europäisches Burgeninstitut</a>
+        </aside>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-detail').classList.add('active');
+  $('nav-browse').classList.remove('active');
+  $('nav-trip').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+  if (c.lat) {
+    setTimeout(() => {
+      const el = $('detail-map');
+      if (!el) return;
+      detailMap = L.map(el, { zoomControl: false, scrollWheelZoom: false }).setView([c.lat, c.lon], 12);
+      tiles().addTo(detailMap);
+      L.circleMarker([c.lat, c.lon], { ...MARKER, radius: 8, weight: 2 }).addTo(detailMap);
+    }, 40);
+  }
 }
 
-async function openDetail(id) {
-  const c = fullCastles.find(x => x.id === id); if (!c) return;
-  const meta=c.meta||{}, sections=c.sections||{}, komoot=c.komoot||{}, station=c.station||{};
-  const loc=[meta['Stadt / Gemeinde'],meta['Kreis'],meta['Bundesland']].filter(Boolean).join(', ');
-  let metaHtml=''; ['Bundesland','Kreis','Stadt / Gemeinde','Typ','Klassifizierung','Höhenlage','Datierung-Beginn','Datierung-Ende','Erhaltung - Heutiger Zustand'].forEach(k=>{const v=meta[k];if(v)metaHtml+=`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`;});
-  if(station.station_name) metaHtml+=`<dt>Nächster Bahnhof</dt><dd>${esc(station.station_name)} (${station.station_distance_m}m)</dd>`;
-  let sectHtml=''; ['Geschichte','Bauentwicklung','Baubeschreibung','Arch-Untersuchung/Funde'].forEach(t=>{const txt=sections[t];if(txt){const ps=txt.split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('');sectHtml+=`<section class="detail__section"><h3>${esc(t)}</h3>${ps}</section>`;}});
-  let imgHtml=''; if(c.images?.length){imgHtml='<div class="detail__gallery">'+c.images.map(img=>`<a href="${img.large}" target="_blank" rel="noopener"><img src="${img.thumb}" alt="${esc(img.alt||'')}" loading="lazy"></a>`).join('')+'</div>';}
-  const mapHtml=c.lat?`<div class="detail__map" id="dmap-${c.id}" data-lat="${c.lat}" data-lon="${c.lon}"></div>`:'';
-  const hikeBadge=komoot.hike_count>0?`<div class="detail__hike-badge">🥾 ${komoot.hike_count} Wanderungen${komoot.avg_rating?' · ★ '+komoot.avg_rating:''}</div>`:'';
-
-  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-  document.querySelector('.mode-bar').classList.add('hidden');
-  const dv=document.getElementById('detail-view'); dv.classList.add('active');
-  dv.innerHTML=`<nav class="detail__nav"><button class="detail__back" onclick="closeDetail()">← Zurück</button></nav><header class="detail__header"><p class="detail__location">${esc(loc)}</p><h2 class="detail__title">${esc(c.name)}</h2><p class="detail__lead">${esc(meta.Kurzansprache||'')}</p>${hikeBadge}</header>${imgHtml}<div class="detail__content"><div class="detail__main">${sectHtml}</div><aside class="detail__sidebar">${mapHtml}<dl class="detail__meta">${metaHtml}</dl><a class="detail__source" href="${esc(c.url)}" target="_blank" rel="noopener">Quelle: EBIDAT ↗</a></aside></div>`;
-  if(c.lat){setTimeout(()=>{const el=document.getElementById(`dmap-${c.id}`);if(el){const dm=L.map(el,{zoomControl:false}).setView([c.lat,c.lon],13);tileLayer().addTo(dm);L.circleMarker([c.lat,c.lon],{radius:8,fillColor:'#b54b2a',color:'#fff',weight:2,fillOpacity:1}).addTo(dm);}},50);}
-  window.scrollTo({top:0,behavior:'instant'});
+function goBack() {
+  if (history.length > 1) history.back();
+  else location.hash = lastListView === 'trip' ? '#/planer' : '#/';
 }
 
-function closeDetail() {
-  document.getElementById('detail-view').classList.remove('active'); document.getElementById('detail-view').innerHTML='';
-  document.querySelector('.mode-bar').classList.remove('hidden');
-  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-  document.getElementById(currentMode==='browse'?'browse-view':'trip-view').classList.remove('hidden');
-  setTimeout(()=>{(currentMode==='browse'?browseMap:tripMap).invalidateSize();},50);
+/* ————————— Start ————————— */
+async function init() {
+  browseMap = L.map('map-browse', { zoomControl: false }).setView([51.1, 10.3], 6);
+  L.control.zoom({ position: 'topright' }).addTo(browseMap);
+  tiles().addTo(browseMap); browseMarkers.addTo(browseMap);
+  tripMap = L.map('map-trip', { zoomControl: false }).setView([51.1, 10.3], 6);
+  L.control.zoom({ position: 'topright' }).addTo(tripMap);
+  tiles().addTo(tripMap); tripMarkers.addTo(tripMap);
+
+  try {
+    castles = await fetch('data/castles_enriched.json').then(r => r.json());
+  } catch (e) {
+    $('stream').innerHTML = '<div class="empty" style="display:block"><p>Die Burgendaten konnten nicht geladen werden.</p></div>';
+    return;
+  }
+  populateFilters(computeFilters(castles));
+  filterBrowse();
+  $('browse-sub').textContent = `${castles.length} Burgen aus der EBIDAT-Datenbank — mit Bildern, Geschichte und Anreise.`;
+  route();
 }
 
-document.querySelectorAll('.mode-btn').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
-  currentMode=btn.dataset.mode; document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-  document.getElementById(currentMode==='browse'?'browse-view':'trip-view').classList.remove('hidden');
-  setTimeout(()=>{(currentMode==='browse'?browseMap:tripMap).invalidateSize();},50);
-}));
-['search','filter-state','filter-erhaltung','filter-typ'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',filterBrowse));
+/* ————————— Events ————————— */
+window.addEventListener('hashchange', route);
+$('trip-form').addEventListener('submit', runTrip);
+$('reset-filters').addEventListener('click', () => {
+  $('search').value = ''; $('f-state').value = ''; $('f-erhaltung').value = ''; $('f-typ').value = '';
+  filterBrowse();
+});
+['search', 'f-state', 'f-erhaltung', 'f-typ'].forEach(id =>
+  $(id).addEventListener(id === 'search' ? 'input' : 'change', filterBrowse));
+
+// Click + keyboard activation for list entries (delegated)
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-id]');
+  if (el && !e.target.closest('a')) openDetail(parseInt(el.dataset.id, 10));
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('[data-id]')) openDetail(parseInt(e.target.dataset.id, 10));
+  if (e.key === 'Escape' && $('view-detail').classList.contains('active')) goBack();
+});
+
 init();
 </script>
 </body>
