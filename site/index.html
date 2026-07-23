@@ -402,7 +402,8 @@ footer a:hover { color: var(--amber); }
   .result { grid-template-columns: 74px 1fr auto; gap: 12px; }
   .entry__thumb--result { width: 74px; height: 56px; }
   .result__sub { max-width: 110px; }
-  .topnav a { padding: 7px 12px; font-size: 0.84rem; }
+  .topnav a { padding: 7px 10px; font-size: 0.82rem; }
+  .wordmark span { display: none; }
 }
 </style>
 </head>
@@ -411,11 +412,12 @@ footer a:hover { color: var(--amber); }
 <header class="topbar">
   <a class="wordmark" href="#/" aria-label="Burgen in Deutschland — Startseite">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21V8l2-1V4h2v2h2V4h2v2h2V4h2v2h2V4h2v3l2 1v13h-7v-4a2 2 0 1 0-4 0v4H3zm4-8h2v-2H7v2zm8 0h2v-2h-2v2z"/></svg>
-    Burgen
+    <span>Burgen</span>
   </a>
   <nav class="topnav" aria-label="Hauptnavigation">
     <a href="#/" id="nav-browse" class="active">Entdecken</a>
     <a href="#/planer" id="nav-trip">Reiseplaner</a>
+    <a href="tagebuch/">Tagebuch</a>
   </nav>
 </header>
 
@@ -925,6 +927,7 @@ function showDetail(id) {
           Google Maps &amp; Bewertungen
         </a>
         ${hikeBadge}
+        <a class="btn-action btn-action--ghost" href="tagebuch/?burg=${c.id}">📖 Besuch eintragen</a>
         <a class="btn-action btn-action--ghost" href="${esc(c.url)}" target="_blank" rel="noopener">Quelle: EBIDAT ↗</a>
       </div>
       ${gallery}

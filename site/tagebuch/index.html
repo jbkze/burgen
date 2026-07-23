@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Burgen-Tagebuch</title>
+<meta name="description" content="Dein persönliches Burgen-Tagebuch — Besuche festhalten, bewerten und erinnern.">
+<meta name="theme-color" content="#191411">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap" rel="stylesheet">
+<style>
+/* ————— gleiche Designsprache wie die Hauptseite ————— */
+:root {
+  --bg: oklch(17% 0.012 55);
+  --bg-deep: oklch(14% 0.011 55);
+  --surface: oklch(21% 0.014 55);
+  --elevated: oklch(25% 0.016 55);
+  --line: oklch(31% 0.014 55);
+  --line-soft: oklch(26% 0.012 55);
+  --ink: oklch(93% 0.016 80);
+  --ink-2: oklch(76% 0.022 75);
+  --ink-3: oklch(60% 0.02 70);
+  --amber: oklch(80% 0.125 75);
+  --amber-strong: oklch(86% 0.14 80);
+  --amber-dim: oklch(66% 0.11 70);
+  --amber-wash: oklch(80% 0.125 75 / 0.12);
+  --green: oklch(78% 0.12 150);
+  --green-wash: oklch(78% 0.12 150 / 0.13);
+  --red: oklch(72% 0.16 30);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --max-w: 860px;
+  --pad: clamp(18px, 4vw, 32px);
+  --radius: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+img { max-width: 100%; }
+button { font: inherit; color: inherit; }
+::selection { background: var(--amber); color: var(--bg-deep); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 4px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 1100;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px var(--pad); padding-top: max(10px, env(safe-area-inset-top));
+  background: oklch(17% 0.012 55 / 0.82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.wordmark { font-family: var(--serif); font-weight: 600; font-size: 1.2rem; text-decoration: none; color: var(--ink); display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+.wordmark svg { width: 22px; height: 22px; color: var(--amber); flex-shrink: 0; }
+.topnav { display: flex; gap: 4px; }
+.topnav a { font-size: 0.88rem; font-weight: 600; text-decoration: none; color: var(--ink-2); padding: 7px 14px; border-radius: 99px; white-space: nowrap; transition: color .15s ease, background .15s ease; }
+.topnav a:hover { color: var(--ink); }
+.topnav a.active { background: var(--amber-wash); color: var(--amber-strong); }
+
+.wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 var(--pad) 90px; }
+.head { padding: clamp(30px, 6vw, 56px) 0 8px; }
+.head h1 { font-family: var(--serif); font-weight: 560; font-size: clamp(2.1rem, 6vw, 3.4rem); font-variation-settings: "opsz" 100; line-height: 1.04; letter-spacing: -0.015em; text-wrap: balance; }
+.head h1 em { font-style: italic; color: var(--amber); }
+.head p { color: var(--ink-2); margin-top: 10px; max-width: 52ch; }
+
+.stats { display: flex; gap: clamp(18px, 5vw, 44px); flex-wrap: wrap; padding: 20px 0 4px; }
+.stat b { font-family: var(--serif); font-weight: 600; font-size: 1.7rem; color: var(--amber); display: block; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.78rem; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 22px 0; border-bottom: 1px solid var(--line-soft); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 0.9rem; font-weight: 700; text-decoration: none;
+  padding: 10px 22px; border-radius: 99px; border: 1px solid transparent;
+  background: var(--amber); color: var(--bg-deep); transition: background .15s ease;
+}
+.btn:hover { background: var(--amber-strong); }
+.btn--ghost { background: transparent; color: var(--ink-2); border-color: var(--line); font-weight: 600; }
+.btn--ghost:hover { background: transparent; color: var(--amber-strong); border-color: var(--amber-dim); }
+.btn--small { padding: 6px 14px; font-size: 0.8rem; }
+.bar .spacer { margin-left: auto; }
+
+/* ————— Formular ————— */
+.form-panel {
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 14px;
+  padding: clamp(18px, 3.5vw, 28px); margin-top: 22px;
+  box-shadow: 0 18px 50px oklch(0% 0 0 / 0.35);
+  display: none;
+}
+.form-panel.open { display: block; }
+.form-panel h2 { font-family: var(--serif); font-weight: 600; font-size: 1.5rem; margin-bottom: 18px; }
+.f-label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); margin: 18px 0 6px; }
+.f-label:first-of-type { margin-top: 0; }
+input[type=text], input[type=date], textarea {
+  font-family: var(--sans); font-size: 0.95rem; color: var(--ink); width: 100%;
+  background: var(--elevated); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 13px; transition: border-color .15s ease;
+  -webkit-appearance: none; appearance: none;
+}
+input::placeholder, textarea::placeholder { color: var(--ink-3); }
+input:focus, textarea:focus { outline: none; border-color: var(--amber-dim); }
+input[type=date] { color-scheme: dark; }
+textarea { min-height: 110px; resize: vertical; line-height: 1.6; }
+
+.picker { position: relative; }
+.picker__list {
+  position: absolute; z-index: 50; left: 0; right: 0; top: calc(100% + 6px);
+  background: var(--elevated); border: 1px solid var(--line); border-radius: 10px;
+  max-height: 290px; overflow-y: auto; display: none;
+  box-shadow: 0 16px 40px oklch(0% 0 0 / 0.5);
+}
+.picker__list.open { display: block; }
+.picker__item { display: flex; gap: 12px; align-items: center; padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--line-soft); }
+.picker__item:last-child { border-bottom: none; }
+.picker__item:hover, .picker__item.hl { background: var(--amber-wash); }
+.picker__item img { width: 52px; height: 38px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.picker__item .n { font-family: var(--serif); font-weight: 550; font-size: 0.95rem; line-height: 1.25; }
+.picker__item .l { font-size: 0.72rem; color: var(--ink-3); }
+.picker__chosen {
+  display: none; align-items: center; gap: 14px; margin-top: 10px;
+  background: var(--elevated); border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px;
+}
+.picker__chosen.show { display: flex; }
+.picker__chosen img { width: 64px; height: 46px; object-fit: cover; border-radius: 6px; }
+.picker__chosen .n { font-family: var(--serif); font-weight: 560; }
+.picker__chosen .l { font-size: 0.74rem; color: var(--ink-3); }
+.picker__chosen button { margin-left: auto; background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 1.1rem; padding: 4px 8px; }
+.picker__chosen button:hover { color: var(--red); }
+
+.ratings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+.rating { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rating__name { font-size: 0.88rem; color: var(--ink-2); font-weight: 600; }
+.starrow { display: inline-flex; gap: 2px; }
+.starrow button { background: none; border: none; cursor: pointer; font-size: 1.35rem; line-height: 1; padding: 2px; color: var(--line); transition: color .1s ease, transform .1s ease; }
+.starrow button.on { color: var(--amber); }
+.starrow button:hover { transform: scale(1.15); }
+
+.tags-box { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tagchip {
+  font-size: 0.78rem; font-weight: 650; padding: 5px 14px; border-radius: 99px;
+  background: var(--elevated); color: var(--ink-2); border: 1px solid var(--line-soft);
+  cursor: pointer; transition: all .12s ease;
+}
+.tagchip:hover { border-color: var(--amber-dim); color: var(--amber-strong); }
+.tagchip.on { background: var(--amber-wash); color: var(--amber-strong); border-color: var(--amber-dim); }
+.tags-box input { width: 150px; flex: 0 1 auto; padding: 6px 12px; font-size: 0.82rem; border-radius: 99px; }
+.form-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+.form-hint { color: var(--red); font-size: 0.85rem; margin-top: 12px; display: none; }
+
+/* ————— Feed ————— */
+.feed { padding-top: 8px; }
+.year-mark { font-family: var(--serif); font-style: italic; color: var(--ink-3); font-size: 1rem; padding: 26px 0 4px; }
+.card {
+  display: grid; grid-template-columns: 150px 1fr; gap: 20px;
+  padding: 24px 0; border-bottom: 1px solid var(--line-soft);
+}
+.card__img { border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; background: var(--surface); align-self: start; }
+.card__img img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.92); }
+.card__date { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.card__name { font-family: var(--serif); font-weight: 550; font-size: 1.35rem; line-height: 1.15; margin-top: 4px; }
+.card__name a { color: inherit; text-decoration: none; }
+.card__name a:hover { color: var(--amber-strong); }
+.card__stars { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; }
+.card__overall { color: var(--amber); font-size: 1.02rem; letter-spacing: 2px; }
+.card__overall small { color: var(--ink-3); font-size: 0.76rem; font-family: var(--sans); letter-spacing: 0; margin-left: 6px; }
+.card__cats { font-size: 0.76rem; color: var(--ink-3); }
+.card__cats b { color: var(--ink-2); font-weight: 600; }
+.card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.card__tag { font-size: 0.72rem; font-weight: 650; padding: 3px 11px; border-radius: 99px; background: var(--amber-wash); color: var(--amber-strong); }
+.card__text { font-family: var(--serif); font-weight: 380; font-size: 1rem; color: var(--ink-2); line-height: 1.7; margin-top: 12px; max-width: 62ch; white-space: pre-line; }
+.card__ops { display: flex; gap: 14px; margin-top: 12px; }
+.card__ops button { background: none; border: none; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--ink-3); padding: 0; }
+.card__ops button:hover { color: var(--amber-strong); }
+.card__ops button.danger:hover { color: var(--red); }
+
+.empty { text-align: center; padding: 70px var(--pad); color: var(--ink-3); }
+.empty p { font-family: var(--serif); font-size: 1.3rem; color: var(--ink-2); text-wrap: balance; }
+.empty small { display: block; margin-top: 10px; }
+
+footer { border-top: 1px solid var(--line-soft); margin-top: 40px; padding: 26px var(--pad) calc(26px + env(safe-area-inset-bottom)); text-align: center; font-size: 0.8rem; color: var(--ink-3); }
+footer button { background: none; border: none; cursor: pointer; color: var(--ink-2); font-size: 0.8rem; text-decoration: none; border-bottom: 1px solid var(--line); padding: 0 0 1px; }
+footer button:hover { color: var(--amber); }
+
+@media (max-width: 640px) {
+  .card { grid-template-columns: 1fr; gap: 12px; }
+  .card__img { aspect-ratio: 16/9; }
+  .ratings { grid-template-columns: 1fr; }
+  .topnav a { padding: 7px 10px; font-size: 0.82rem; }
+  .wordmark span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wordmark" href="../" aria-label="Burgen in Deutschland — Startseite">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21V8l2-1V4h2v2h2V4h2v2h2V4h2v2h2V4h2v3l2 1v13h-7v-4a2 2 0 1 0-4 0v4H3zm4-8h2v-2H7v2zm8 0h2v-2h-2v2z"/></svg>
+    <span>Burgen</span>
+  </a>
+  <nav class="topnav" aria-label="Hauptnavigation">
+    <a href="../#/">Entdecken</a>
+    <a href="../#/planer">Reiseplaner</a>
+    <a href="./" class="active">Tagebuch</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Mein Burgen-<em>Tagebuch</em></h1>
+    <p>Halte deine Burgenbesuche fest — mit Wertung, Tags und deinen Erinnerungen. Alles bleibt privat in deinem Browser.</p>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="bar">
+    <button class="btn" id="btn-new" type="button">＋ Besuch eintragen</button>
+    <span class="spacer"></span>
+  </div>
+
+  <!-- ————— Eintrags-Formular ————— -->
+  <form class="form-panel" id="form" novalidate>
+    <h2 id="form-title">Neuer Besuch</h2>
+
+    <label class="f-label" for="pick">Burg</label>
+    <div class="picker">
+      <input type="text" id="pick" placeholder="Burg suchen…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="pick-list">
+      <div class="picker__list" id="pick-list" role="listbox"></div>
+      <div class="picker__chosen" id="pick-chosen"></div>
+    </div>
+
+    <label class="f-label" for="date">Datum</label>
+    <input type="date" id="date" style="max-width:220px">
+
+    <span class="f-label">Bewertung</span>
+    <div class="ratings" id="ratings"></div>
+
+    <span class="f-label">Tags</span>
+    <div class="tags-box" id="tags-box">
+      <input type="text" id="tag-input" placeholder="＋ eigener Tag" autocomplete="off">
+    </div>
+
+    <label class="f-label" for="text">Erinnerungen</label>
+    <textarea id="text" placeholder="Wie war's? Was bleibt hängen?"></textarea>
+
+    <p class="form-hint" id="form-hint">Bitte wähle zuerst eine Burg aus.</p>
+    <div class="form-actions">
+      <button class="btn" type="submit" id="btn-save">Speichern</button>
+      <button class="btn btn--ghost" type="button" id="btn-cancel">Abbrechen</button>
+    </div>
+  </form>
+
+  <!-- ————— Feed ————— -->
+  <div class="feed" id="feed"></div>
+  <div class="empty" id="empty" style="display:none">
+    <p>Noch keine Besuche eingetragen.</p>
+    <small>Warst du schon auf einer Burg? Halte den Besuch fest — oder <a href="../#/" style="color:var(--amber)">finde deine erste</a>.</small>
+  </div>
+</div>
+
+<footer>
+  <button type="button" id="btn-export">Tagebuch exportieren</button> ·
+  <button type="button" id="btn-import">importieren</button>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
+  <div style="margin-top:8px">Deine Einträge werden nur lokal in diesem Browser gespeichert.</div>
+</footer>
+
+<script>
+'use strict';
+const STORE_KEY = 'burgen-tagebuch-v1';
+const CATS = [
+  ['atmosphaere', 'Atmosphäre'],
+  ['erhaltung', 'Erhaltung'],
+  ['aussicht', 'Aussicht'],
+  ['anreise', 'Anreise'],
+];
+const TAG_SUGGESTIONS = ['Wanderung', 'Mit Kindern', 'Picknick', 'Führung', 'Museum', 'Fotospot', 'Sonnenuntergang', 'Regentag', 'Geheimtipp'];
+
+let castles = [];
+let entries = [];
+let editId = null;           // entry id being edited, null = new
+let draft = { castleId: null, ratings: {}, tags: [] };
+
+const $ = id => document.getElementById(id);
+const esc = s => { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const byId = id => castles.find(c => c.id === id);
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+
+function load() {
+  try { entries = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch (e) { entries = []; }
+  if (!Array.isArray(entries)) entries = [];
+}
+function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(entries)); }
+
+function summarizeCastle(c) {
+  const m = c.meta || {};
+  return { id: c.id, name: c.name, state: m['Bundesland'] || '', kreis: m['Kreis'] || '',
+           image: (c.images && c.images.length) ? c.images[0].thumb : null };
+}
+
+/* ————— Sterne ————— */
+function starRowHtml(key) {
+  return `<div class="rating"><span class="rating__name">${esc(Object.fromEntries(CATS)[key])}</span>
+    <span class="starrow" data-cat="${key}" role="radiogroup" aria-label="${esc(Object.fromEntries(CATS)[key])}">` +
+    [1,2,3,4,5].map(v => `<button type="button" data-v="${v}" aria-label="${v} Sterne">★</button>`).join('') +
+    `</span></div>`;
+}
+function paintStars() {
+  document.querySelectorAll('.starrow').forEach(row => {
+    const val = draft.ratings[row.dataset.cat] || 0;
+    row.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v <= val));
+  });
+}
+function starsText(n) { return '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n)); }
+function avgRating(r) {
+  const vals = CATS.map(([k]) => r?.[k]).filter(v => v > 0);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+}
+
+/* ————— Tags ————— */
+function renderTagChips() {
+  const box = $('tags-box'), input = $('tag-input');
+  box.querySelectorAll('.tagchip').forEach(el => el.remove());
+  const all = [...new Set([...TAG_SUGGESTIONS, ...draft.tags])];
+  all.forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tagchip' + (draft.tags.includes(t) ? ' on' : '');
+    b.textContent = t;
+    b.addEventListener('click', () => {
+      draft.tags = draft.tags.includes(t) ? draft.tags.filter(x => x !== t) : [...draft.tags, t];
+      renderTagChips();
+    });
+    box.insertBefore(b, input);
+  });
+}
+
+/* ————— Burg-Picker ————— */
+function renderPickList(q) {
+  const list = $('pick-list');
+  const matches = castles.map(summarizeCastle)
+    .filter(c => !q || c.name.toLowerCase().includes(q) || c.kreis.toLowerCase().includes(q))
+    .slice(0, 30);
+  list.innerHTML = matches.map(c =>
+    `<div class="picker__item" role="option" data-id="${c.id}">
+      ${c.image ? `<img src="${c.image}" alt="" loading="lazy">` : ''}
+      <div><div class="n">${esc(c.name)}</div><div class="l">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</div></div>
+    </div>`).join('') || `<div class="picker__item"><div class="l">Keine Burg gefunden</div></div>`;
+  list.querySelectorAll('[data-id]').forEach(el =>
+    el.addEventListener('click', () => chooseCastle(+el.dataset.id)));
+}
+function chooseCastle(id) {
+  draft.castleId = id;
+  const c = byId(id) ? summarizeCastle(byId(id)) : null;
+  $('pick-list').classList.remove('open');
+  $('pick').value = '';
+  $('pick').style.display = c ? 'none' : '';
+  const box = $('pick-chosen');
+  if (c) {
+    box.className = 'picker__chosen show';
+    box.innerHTML = `${c.image ? `<img src="${c.image}" alt="">` : ''}
+      <div><div class="n">${esc(c.name)}</div><div class="l">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</div></div>
+      <button type="button" aria-label="Auswahl entfernen">✕</button>`;
+    box.querySelector('button').addEventListener('click', () => { draft.castleId = null; chooseCastle(null); });
+  } else {
+    box.className = 'picker__chosen'; box.innerHTML = '';
+  }
+  $('form-hint').style.display = 'none';
+}
+
+/* ————— Formular ————— */
+function openForm(entry) {
+  editId = entry ? entry.id : null;
+  draft = entry
+    ? { castleId: entry.castleId, ratings: { ...entry.ratings }, tags: [...(entry.tags || [])] }
+    : { castleId: null, ratings: {}, tags: [] };
+  $('form-title').textContent = entry ? 'Besuch bearbeiten' : 'Neuer Besuch';
+  $('date').value = entry ? entry.date : todayISO();
+  $('text').value = entry ? (entry.text || '') : '';
+  $('ratings').innerHTML = CATS.map(([k]) => starRowHtml(k)).join('');
+  document.querySelectorAll('.starrow').forEach(row => row.addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    const cat = row.dataset.cat, v = +b.dataset.v;
+    draft.ratings[cat] = draft.ratings[cat] === v ? 0 : v;  // nochmal klicken = zurücksetzen
+    paintStars();
+  }));
+  paintStars();
+  renderTagChips();
+  chooseCastle(draft.castleId);
+  $('form').classList.add('open');
+  $('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!draft.castleId) $('pick').focus();
+}
+function closeForm() { $('form').classList.remove('open'); editId = null; }
+
+function saveForm(ev) {
+  ev.preventDefault();
+  if (!draft.castleId) { $('form-hint').style.display = 'block'; $('pick').focus(); return; }
+  const c = byId(draft.castleId);
+  const entry = {
+    id: editId || (Date.now().toString(36) + Math.random().toString(36).slice(2, 7)),
+    castleId: draft.castleId,
+    castleName: c ? c.name : '',
+    date: $('date').value || todayISO(),
+    ratings: draft.ratings,
+    tags: draft.tags,
+    text: $('text').value.trim(),
+    createdAt: editId ? (entries.find(e => e.id === editId)?.createdAt || Date.now()) : Date.now(),
+  };
+  entries = editId ? entries.map(e => e.id === editId ? entry : e) : [...entries, entry];
+  persist(); closeForm(); render();
+}
+
+/* ————— Feed ————— */
+function render() {
+  const sorted = [...entries].sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.createdAt - a.createdAt);
+  const feed = $('feed');
+  $('empty').style.display = sorted.length ? 'none' : 'block';
+
+  // Statistiken
+  const visited = new Set(entries.map(e => e.castleId)).size;
+  const rated = entries.map(e => avgRating(e.ratings)).filter(v => v > 0);
+  const avg = rated.length ? (rated.reduce((a, b) => a + b, 0) / rated.length) : 0;
+  $('stats').innerHTML = entries.length ? `
+    <div class="stat"><b>${visited}<span style="color:var(--ink-3);font-size:1rem"> / ${castles.length || '–'}</span></b><span>Burgen besucht</span></div>
+    <div class="stat"><b>${entries.length}</b><span>Besuche</span></div>
+    ${avg ? `<div class="stat"><b>${avg.toFixed(1).replace('.', ',')} ★</b><span>ø Wertung</span></div>` : ''}` : '';
+
+  let html = '', lastYear = null;
+  sorted.forEach(e => {
+    const year = (e.date || '').slice(0, 4);
+    if (year && year !== lastYear) { html += `<div class="year-mark">${esc(year)}</div>`; lastYear = year; }
+    const c = byId(e.castleId);
+    const s = c ? summarizeCastle(c) : { name: e.castleName, image: null, kreis: '', state: '' };
+    const overall = avgRating(e.ratings);
+    const cats = CATS.filter(([k]) => e.ratings?.[k] > 0).map(([k, label]) => `${label} <b>${e.ratings[k]}</b>`).join(' · ');
+    const dateStr = e.date ? new Date(e.date + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    html += `<article class="card" data-id="${esc(e.id)}">
+      ${s.image ? `<div class="card__img"><img src="${s.image}" alt="${esc(s.name)}" loading="lazy"></div>` : '<div></div>'}
+      <div>
+        <p class="card__date">${esc(dateStr)}</p>
+        <h2 class="card__name"><a href="../#/burg/${e.castleId}">${esc(s.name)}</a></h2>
+        <div class="card__stars">
+          ${overall ? `<span class="card__overall">${starsText(overall)}<small>${overall.toFixed(1).replace('.', ',')}</small></span>` : ''}
+          ${cats ? `<span class="card__cats">${cats}</span>` : ''}
+        </div>
+        ${(e.tags || []).length ? `<div class="card__tags">${e.tags.map(t => `<span class="card__tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        ${e.text ? `<p class="card__text">${esc(e.text)}</p>` : ''}
+        <div class="card__ops">
+          <button type="button" data-op="edit">Bearbeiten</button>
+          <button type="button" data-op="del" class="danger">Löschen</button>
+        </div>
+      </div>
+    </article>`;
+  });
+  feed.innerHTML = html;
+  feed.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => {
+    const id = b.closest('.card').dataset.id;
+    const entry = entries.find(x => x.id === id);
+    if (!entry) return;
+    if (b.dataset.op === 'edit') openForm(entry);
+    else if (confirm(`Besuch auf „${entry.castleName}" wirklich löschen?`)) {
+      entries = entries.filter(x => x.id !== id); persist(); render();
+    }
+  }));
+}
+
+/* ————— Export / Import ————— */
+function doExport() {
+  const blob = new Blob([JSON.stringify({ app: 'burgen-tagebuch', version: 1, exportedAt: new Date().toISOString(), entries }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `burgen-tagebuch-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function doImport(file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result);
+      const imported = Array.isArray(d) ? d : d.entries;
+      if (!Array.isArray(imported)) throw new Error('bad format');
+      const have = new Set(entries.map(e => e.id));
+      const fresh = imported.filter(e => e && e.id && !have.has(e.id));
+      entries = [...entries, ...fresh];
+      persist(); render();
+      alert(`${fresh.length} Einträge importiert${imported.length - fresh.length ? ` (${imported.length - fresh.length} Duplikate übersprungen)` : ''}.`);
+    } catch (e) { alert('Die Datei konnte nicht gelesen werden — ist es ein Tagebuch-Export?'); }
+  };
+  rd.readAsText(file);
+}
+
+/* ————— Start ————— */
+async function init() {
+  load();
+  render();  // Einträge sofort zeigen, auch bevor die Burgendaten da sind
+  try {
+    castles = await fetch('../data/castles_enriched.json').then(r => r.json());
+  } catch (e) { castles = []; }
+  render();
+
+  // ?burg=<id> öffnet das Formular mit vorausgewählter Burg (Deep-Link aus der Hauptapp)
+  const pre = new URLSearchParams(location.search).get('burg');
+  if (pre && byId(+pre)) { openForm(null); chooseCastle(+pre); }
+}
+
+$('btn-new').addEventListener('click', () => openForm(null));
+$('btn-cancel').addEventListener('click', closeForm);
+$('form').addEventListener('submit', saveForm);
+$('pick').addEventListener('input', () => { renderPickList($('pick').value.trim().toLowerCase()); $('pick-list').classList.add('open'); });
+$('pick').addEventListener('focus', () => { renderPickList($('pick').value.trim().toLowerCase()); $('pick-list').classList.add('open'); });
+document.addEventListener('click', e => { if (!e.target.closest('.picker')) $('pick-list').classList.remove('open'); });
+$('tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const t = $('tag-input').value.trim();
+    if (t && !draft.tags.includes(t)) { draft.tags = [...draft.tags, t]; renderTagChips(); }
+    $('tag-input').value = '';
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('form').classList.contains('open')) closeForm(); });
+$('btn-export').addEventListener('click', doExport);
+$('btn-import').addEventListener('click', () => $('import-file').click());
+$('import-file').addEventListener('change', e => { if (e.target.files[0]) doImport(e.target.files[0]); e.target.value = ''; });
+
+init();
+</script>
+</body>
+</html>
