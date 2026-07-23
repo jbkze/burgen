@@ -2,10 +2,13 @@
 .venv/
 __pycache__/
 
-# Keep castle data, ignore other JSON dumps
+# Data: raw scrape is committed gzipped; the working JSONL is not
 *.json
-!data/*.json
+*.jsonl
+!data/ids.json
+!data/enrichment.json
 !site/data/*.json
+!site/data/burg/*.json
 
 # Tooling artifacts
 .playwright-mcp/

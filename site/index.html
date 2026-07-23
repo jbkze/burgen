@@ -139,7 +139,7 @@ select {
 .count b { color: var(--amber); font-weight: 700; }
 
 /* ————————————————————— Stream ————————————————————— */
-.stream { max-width: var(--max-w); margin: 0 auto; padding: 10px var(--pad) 90px; }
+.stream { max-width: var(--max-w); margin: 0 auto; padding: 10px var(--pad) 40px; }
 .entry { cursor: pointer; }
 .entry:focus-visible { outline: 2px solid var(--amber); outline-offset: 6px; }
 
@@ -201,6 +201,9 @@ select {
 .entry__meta { font-size: 0.8rem; color: var(--ink-3); margin-top: 3px; }
 .entry__meta .hike { color: var(--green); font-weight: 600; }
 
+.sentinel { height: 1px; }
+.stream-status { text-align: center; color: var(--ink-3); font-size: 0.85rem; padding: 18px 0 50px; }
+
 .empty {
   display: none; text-align: center; padding: 90px var(--pad); color: var(--ink-3);
 }
@@ -260,6 +263,7 @@ select {
 .result__sub { font-size: 0.72rem; color: var(--ink-3); margin-top: 3px; max-width: 180px; }
 
 /* ————————————————————— Detailseite ————————————————————— */
+.detail-loading { text-align: center; padding: 120px var(--pad); color: var(--ink-3); }
 .detail__hero { position: relative; background: var(--bg-deep); }
 .detail__hero-img { width: 100%; height: clamp(300px, 58vh, 580px); object-fit: cover; display: block; filter: saturate(0.95); }
 .detail__hero--noimg { height: clamp(180px, 30vh, 300px); }
@@ -445,6 +449,8 @@ footer a:hover { color: var(--amber); }
     </div>
   </div>
   <div class="stream" id="stream" role="list"></div>
+  <div class="sentinel" id="sentinel"></div>
+  <p class="stream-status" id="stream-status"></p>
   <div class="empty" id="empty">
     <p>Keine Burg passt zu dieser Suche.</p>
     <button id="reset-filters" type="button">Filter zurücksetzen</button>
@@ -516,16 +522,24 @@ footer a:hover { color: var(--amber); }
 'use strict';
 const HAFAS = 'https://v6.db.transport.rest';
 const OSRM = 'https://router.project-osrm.org';
+const TRANSITOUS = 'https://api.transitous.org/api/v1';
+const IMG_PREFIX = 'https://www.ebidat.de/r30/vc_content/bilder/firma451/msvc_intern/';
 const MARKER = { radius: 5.5, fillColor: '#e5b567', color: '#191411', weight: 1.5, fillOpacity: 0.92 };
+const BATCH = 48;                 // Stream-Einträge pro Nachlade-Schritt
+const OSRM_MAX = 80;              // max. Ziele pro OSRM-Table-Anfrage
 
-let castles = [];            // full records
+let idx = [];                     // schlanker Index aller Burgen (data/index.json)
+const detailCache = new Map();    // id -> volles Burg-JSON (data/burg/<id>.json)
 let browseMap, tripMap, detailMap = null;
 const browseMarkers = L.layerGroup(), tripMarkers = L.layerGroup();
-let browseScroll = 0;        // scroll position to restore when returning from detail
-let lastListView = 'browse'; // which list view the user came from
+let filtered = [];                // aktuelle Filterung des Streams
+let rendered = 0;                 // wie viele Einträge bereits im DOM sind
+let browseScroll = 0;
+let lastListView = 'browse';
 
 const $ = id => document.getElementById(id);
 const esc = s => { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const imgUrl = c => c.i ? (c.i.startsWith('http') ? c.i : IMG_PREFIX + c.i) : null;
 
 function tiles() {
   return L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', {
@@ -541,24 +555,19 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function summarize(c) {
-  const meta = c.meta || {}, komoot = c.komoot || {};
-  return {
-    id: c.id, name: c.name, lat: c.lat, lon: c.lon,
-    state: meta['Bundesland'] || '', kreis: meta['Kreis'] || '',
-    typ: meta['Klassifizierung'] || '',
-    erhaltung: meta['Erhaltung - Heutiger Zustand'] || '',
-    datierung: meta['Datierung-Beginn'] || '',
-    teaser: meta['Kurzansprache'] || '',
-    image: (c.images && c.images.length) ? c.images[0].thumb : null,
-    hikes: komoot.hike_count || 0,
-  };
-}
-
 function googleMapsUrl(c) {
   const meta = c.meta || {};
   const q = [c.name, meta['Stadt / Gemeinde'], meta['Bundesland']].filter(Boolean).join(', ');
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
+
+async function loadBurg(id) {
+  if (detailCache.has(id)) return detailCache.get(id);
+  const r = await fetch(`data/burg/${id}.json`);
+  if (!r.ok) throw new Error('not found');
+  const c = await r.json();
+  detailCache.set(id, c);
+  return c;
 }
 
 /* ————————— Routing (#/, #/planer, #/burg/ID) ————————— */
@@ -589,10 +598,9 @@ function openDetail(id) {
 function computeFilters(list) {
   const states = new Set(), types = new Set(), erhaltung = new Set();
   list.forEach(c => {
-    const m = c.meta || {};
-    if (m['Bundesland']) states.add(m['Bundesland']);
-    (m['Klassifizierung'] || '').split(',').forEach(t => { t = t.trim(); if (t) types.add(t); });
-    if (m['Erhaltung - Heutiger Zustand']) erhaltung.add(m['Erhaltung - Heutiger Zustand']);
+    if (c.s) states.add(c.s);
+    (c.t || '').split(',').forEach(t => { t = t.trim(); if (t) types.add(t); });
+    if (c.e) erhaltung.add(c.e);
   });
   const de = s => [...s].sort((a, b) => a.localeCompare(b, 'de'));
   return { states: de(states), types: de(types), erhaltung: de(erhaltung) };
@@ -609,42 +617,55 @@ function populateFilters(f) {
 }
 
 function entryFeatured(c) {
-  const chips = [c.typ, c.datierung].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('');
-  const hike = c.hikes > 0 ? `<span class="chip chip--hike">🥾 ${c.hikes} Wanderungen</span>` : '';
-  return `<article class="entry entry--featured" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.name)}">
-    <div class="entry__img"><img src="${c.image}" alt="${esc(c.name)}" loading="lazy"></div>
+  const chips = [c.t, c.d].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('');
+  const hike = c.h > 0 ? `<span class="chip chip--hike">🥾 ${c.h} Wanderungen</span>` : '';
+  return `<article class="entry entry--featured" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.n)}">
+    <div class="entry__img"><img src="${imgUrl(c)}" alt="${esc(c.n)}" loading="lazy"></div>
     <div>
-      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
-      <h2 class="entry__name-lg">${esc(c.name)}</h2>
-      <p class="entry__teaser">${esc(c.teaser)}</p>
+      <p class="eyebrow">${esc([c.k, c.s].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name-lg">${esc(c.n)}</h2>
+      <p class="entry__teaser">${esc(c.c)}</p>
       <div class="chips">${chips}${hike}</div>
     </div>
   </article>`;
 }
 
 function entryCompact(c) {
-  const meta = [c.typ, c.datierung].filter(Boolean).join(' · ');
-  const hike = c.hikes > 0 ? ` <span class="hike">· 🥾 ${c.hikes}</span>` : '';
-  return `<article class="entry entry--compact" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.name)}">
-    <div class="entry__thumb"><img src="${c.image}" alt="" loading="lazy"></div>
+  const meta = [c.t, c.d].filter(Boolean).join(' · ');
+  const hike = c.h > 0 ? ` <span class="hike">· 🥾 ${c.h}</span>` : '';
+  return `<article class="entry entry--compact" data-id="${c.id}" role="listitem button" tabindex="0" aria-label="${esc(c.n)}">
+    <div class="entry__thumb"><img src="${imgUrl(c)}" alt="" loading="lazy"></div>
     <div>
-      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
-      <h2 class="entry__name">${esc(c.name)}</h2>
+      <p class="eyebrow">${esc([c.k, c.s].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name">${esc(c.n)}</h2>
       <p class="entry__meta">${esc(meta)}${hike}</p>
     </div>
   </article>`;
 }
 
+function renderMore() {
+  if (rendered >= filtered.length) return;
+  const next = filtered.slice(rendered, rendered + BATCH);
+  const html = next.map((c, i) => ((rendered + i) % 4 === 0) ? entryFeatured(c) : entryCompact(c)).join('');
+  $('stream').insertAdjacentHTML('beforeend', html);
+  rendered += next.length;
+  $('stream-status').textContent = rendered < filtered.length
+    ? `${rendered} von ${filtered.length} Burgen` : '';
+}
+
 function renderBrowse(list) {
+  filtered = list; rendered = 0;
   $('count').textContent = list.length;
-  browseMarkers.clearLayers();
-  const stream = $('stream');
-  stream.innerHTML = list.map((c, i) => (i % 4 === 0) ? entryFeatured(c) : entryCompact(c)).join('');
+  $('stream').innerHTML = '';
   $('empty').style.display = list.length ? 'none' : 'block';
+  $('stream-status').textContent = '';
+  renderMore();
+
+  browseMarkers.clearLayers();
   list.forEach(c => {
     if (c.lat && c.lon) {
       const m = L.circleMarker([c.lat, c.lon], MARKER);
-      m.bindPopup(`<b>${esc(c.name)}</b><br><small>${esc(c.state)}</small>`);
+      m.bindPopup(`<b>${esc(c.n)}</b><br><small>${esc(c.s)}</small>`);
       m.on('click', () => openDetail(c.id));
       browseMarkers.addLayer(m);
     }
@@ -654,11 +675,11 @@ function renderBrowse(list) {
 function filterBrowse() {
   const q = $('search').value.trim().toLowerCase();
   const st = $('f-state').value, er = $('f-erhaltung').value, ty = $('f-typ').value;
-  renderBrowse(castles.map(summarize).filter(c => {
-    if (q && !c.name.toLowerCase().includes(q) && !c.kreis.toLowerCase().includes(q)) return false;
-    if (st && c.state.toLowerCase() !== st) return false;
-    if (er && !c.erhaltung.toLowerCase().includes(er)) return false;
-    if (ty && !c.typ.toLowerCase().includes(ty)) return false;
+  renderBrowse(idx.filter(c => {
+    if (q && !c.n.toLowerCase().includes(q) && !(c.k || '').toLowerCase().includes(q)) return false;
+    if (st && c.s.toLowerCase() !== st) return false;
+    if (er && !(c.e || '').toLowerCase().includes(er)) return false;
+    if (ty && !(c.t || '').toLowerCase().includes(ty)) return false;
     return true;
   }));
 }
@@ -674,9 +695,6 @@ async function resolveStation(name) {
     return { id: s.id, name: s.name, lat: s.location?.latitude, lon: s.location?.longitude };
   } catch (e) { return null; }
 }
-
-// Transitous (MOTIS) is the fallback transit router when HAFAS is down.
-const TRANSITOUS = 'https://api.transitous.org/api/v1';
 
 async function transitousGeocode(name) {
   try {
@@ -702,8 +720,8 @@ async function transitousJourney(fromLat, fromLon, toLat, toLon) {
   } catch (e) { return null; }
 }
 
-// HAFAS first (its station id gives the best train journeys), then
-// Transitous stops, then Nominatim — so the planner degrades gracefully.
+// HAFAS zuerst (Station-ID liefert die besten Zugverbindungen), dann
+// Transitous-Stops, dann Nominatim — der Planer degradiert sanft.
 async function geocode(name) {
   const st = await resolveStation(name);
   if (st && st.lat != null) return st;
@@ -747,54 +765,65 @@ async function osrmTable(origin, cands, annotations) {
 async function mapLimit(items, limit, fn) {
   const results = []; let i = 0;
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) { const idx = i++; results[idx] = await fn(items[idx]); }
+    while (i < items.length) { const idx2 = i++; results[idx2] = await fn(items[idx2]); }
   }));
   return results;
 }
 
+// Bei tausenden Burgen: erst per Luftlinie eingrenzen, dann max. OSRM_MAX
+// Kandidaten an OSRM schicken.
+function nearestByAir(origin, cands, maxMin, cap) {
+  const reachKm = maxMin / 60 * 110 + 15;
+  return cands
+    .map(c => [c, haversineKm(origin.lat, origin.lon, c.lat, c.lon)])
+    .filter(([, d]) => d <= reachKm)
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, cap)
+    .map(([c]) => c);
+}
+
 async function planCar(origin, cands, maxMin) {
+  const near = nearestByAir(origin, cands, maxMin, OSRM_MAX);
+  if (!near.length) return [];
   let table = null;
-  try { table = await osrmTable(origin, cands, 'duration,distance'); } catch (e) {}
+  try { table = await osrmTable(origin, near, 'duration,distance'); } catch (e) {}
   if (!table) return [];
   const dur = (table.durations || [[]])[0], dist = (table.distances || [[]])[0];
   const out = [];
-  cands.forEach((c, i) => {
+  near.forEach((c, i) => {
     const d = dur[i + 1];
     if (d == null) return;
     const min = Math.round(d / 60);
     if (min > maxMin) return;
-    const s = summarize(c);
-    s.travel = { duration_min: min, distance_km: (dist && dist[i + 1] != null) ? Math.round(dist[i + 1] / 100) / 10 : null };
-    out.push(s);
+    out.push({ ...c, travel: { duration_min: min, distance_km: (dist && dist[i + 1] != null) ? Math.round(dist[i + 1] / 100) / 10 : null } });
   });
   return out;
 }
 
 async function planTrain(origin, cands, maxMin) {
-  const withStation = cands.filter(c => c.station && c.station.station_id);
+  const withStation = cands.filter(c => c.st);
   if (!withStation.length) return [];
-  let top = null;
+  let top = nearestByAir(origin, withStation, maxMin, OSRM_MAX);
+  if (!top.length) return [];
   try {
-    const table = await osrmTable(origin, withStation, 'duration');
+    const table = await osrmTable(origin, top, 'duration');
     const dur = table ? (table.durations || [[]])[0] : null;
     if (dur) {
-      const scored = withStation.map((c, i) => [c, dur[i + 1] != null ? Math.round(dur[i + 1] / 60) : 999]);
+      const scored = top.map((c, i) => [c, dur[i + 1] != null ? Math.round(dur[i + 1] / 60) : 999]);
       scored.sort((a, b) => a[1] - b[1]);
       top = scored.filter(([, d]) => d <= maxMin * 2).slice(0, 15).map(([c]) => c);
+    } else {
+      top = top.slice(0, 15);
     }
-  } catch (e) {}
-  if (!top) top = [...withStation].sort((a, b) =>
-    haversineKm(origin.lat, origin.lon, a.lat, a.lon) - haversineKm(origin.lat, origin.lon, b.lat, b.lon)).slice(0, 15);
-  // With a HAFAS origin id use HAFAS journeys; otherwise route via Transitous coordinates.
-  const journey = origin.id
-    ? c => getJourney(origin.id, c.station.station_id)
-    : c => transitousJourney(origin.lat, origin.lon, c.station.station_lat ?? c.lat, c.station.station_lon ?? c.lon);
+  } catch (e) { top = top.slice(0, 15); }
+  // Mit HAFAS-Origin-ID und Station-ID: HAFAS-Journey; sonst Transitous über Koordinaten.
+  const journey = c => (origin.id && c.st[0])
+    ? getJourney(origin.id, c.st[0])
+    : transitousJourney(origin.lat, origin.lon, c.st[1] ?? c.lat, c.st[2] ?? c.lon);
   const results = await mapLimit(top, 5, async c => {
     const j = await journey(c);
     if (!j || j.duration_min > maxMin) return null;
-    const s = summarize(c);
-    s.travel = j;
-    return s;
+    return { ...c, travel: j };
   });
   return results.filter(Boolean);
 }
@@ -810,13 +839,13 @@ function resultRow(c, mode) {
   } else {
     sub = c.travel?.distance_km != null ? `${c.travel.distance_km} km` : '';
   }
-  const hike = c.hikes > 0 ? ` <span class="hike">· 🥾 ${c.hikes}</span>` : '';
-  return `<div class="result" data-id="${c.id}" role="button" tabindex="0" aria-label="${esc(c.name)}">
-    <div class="entry__thumb entry__thumb--result"><img src="${c.image}" alt="" loading="lazy"></div>
+  const hike = c.h > 0 ? ` <span class="hike">· 🥾 ${c.h}</span>` : '';
+  return `<div class="result" data-id="${c.id}" role="button" tabindex="0" aria-label="${esc(c.n)}">
+    <div class="entry__thumb entry__thumb--result"><img src="${imgUrl(c)}" alt="" loading="lazy"></div>
     <div>
-      <p class="eyebrow">${esc([c.kreis, c.state].filter(Boolean).join(' · '))}</p>
-      <h2 class="entry__name">${esc(c.name)}</h2>
-      <p class="entry__meta">${esc(c.typ)}${hike}</p>
+      <p class="eyebrow">${esc([c.k, c.s].filter(Boolean).join(' · '))}</p>
+      <h2 class="entry__name">${esc(c.n)}</h2>
+      <p class="entry__meta">${esc(c.t)}${hike}</p>
     </div>
     <div class="result__right">
       <div class="result__dur">${durTxt}</div>
@@ -838,12 +867,11 @@ async function runTrip(ev) {
   try {
     const o = await geocode(origin);
     if (!o) { status.className = 'planner__status error'; status.textContent = `„${origin}" wurde nicht gefunden — versuch es mit einem Bahnhofs- oder Ortsnamen.`; return; }
-    const cands = castles.filter(c => {
+    const cands = idx.filter(c => {
       if (c.lat == null) return false;
-      const m = c.meta || {};
-      if (ty && !(m['Klassifizierung'] || '').toLowerCase().includes(ty)) return false;
-      if (er && !(m['Erhaltung - Heutiger Zustand'] || '').toLowerCase().includes(er)) return false;
-      if (mh && ((c.komoot || {}).hike_count || 0) < mh) return false;
+      if (ty && !(c.t || '').toLowerCase().includes(ty)) return false;
+      if (er && !(c.e || '').toLowerCase().includes(er)) return false;
+      if (mh && (c.h || 0) < mh) return false;
       return true;
     });
     const found = mode === 'car' ? await planCar(o, cands, maxMin) : await planTrain(o, cands, maxMin);
@@ -859,7 +887,7 @@ async function runTrip(ev) {
     found.forEach(c => {
       if (c.lat && c.lon) {
         const m = L.circleMarker([c.lat, c.lon], { ...MARKER, radius: 6.5 });
-        m.bindPopup(`<b>${esc(c.name)}</b><br><small>${c.travel?.duration_min ?? '?'} min</small>`);
+        m.bindPopup(`<b>${esc(c.n)}</b><br><small>${c.travel?.duration_min ?? '?'} min</small>`);
         m.on('click', () => openDetail(c.id));
         tripMarkers.addLayer(m);
       }
@@ -877,9 +905,19 @@ async function runTrip(ev) {
 }
 
 /* ————————— Detailseite ————————— */
-function showDetail(id) {
-  const c = castles.find(x => x.id === id);
-  if (!c) { location.hash = ''; return; }
+async function showDetail(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-detail').classList.add('active');
+  $('nav-browse').classList.remove('active');
+  $('nav-trip').classList.remove('active');
+  $('view-detail').innerHTML = '<div class="detail-loading"><span class="spinner" aria-hidden="true"></span>Lade Burg …</div>';
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  let c;
+  try { c = await loadBurg(id); }
+  catch (e) { location.hash = ''; return; }
+  if (!location.hash.startsWith('#/burg/' + id)) return;  // Nutzer hat inzwischen weiter navigiert
+
   const meta = c.meta || {}, sections = c.sections || {}, komoot = c.komoot || {}, station = c.station || {};
   const loc = [meta['Stadt / Gemeinde'], meta['Kreis'], meta['Bundesland']].filter(Boolean).join(' · ');
   const heroImg = (c.images && c.images.length) ? c.images[0] : null;
@@ -941,12 +979,6 @@ function showDetail(id) {
       </div>
     </div>`;
 
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $('view-detail').classList.add('active');
-  $('nav-browse').classList.remove('active');
-  $('nav-trip').classList.remove('active');
-  window.scrollTo({ top: 0, behavior: 'instant' });
-
   if (detailMap) { detailMap.remove(); detailMap = null; }
   if (c.lat) {
     setTimeout(() => {
@@ -966,22 +998,22 @@ function goBack() {
 
 /* ————————— Start ————————— */
 async function init() {
-  browseMap = L.map('map-browse', { zoomControl: false }).setView([51.1, 10.3], 6);
+  browseMap = L.map('map-browse', { zoomControl: false, preferCanvas: true }).setView([51.1, 10.3], 6);
   L.control.zoom({ position: 'topright' }).addTo(browseMap);
   tiles().addTo(browseMap); browseMarkers.addTo(browseMap);
-  tripMap = L.map('map-trip', { zoomControl: false }).setView([51.1, 10.3], 6);
+  tripMap = L.map('map-trip', { zoomControl: false, preferCanvas: true }).setView([51.1, 10.3], 6);
   L.control.zoom({ position: 'topright' }).addTo(tripMap);
   tiles().addTo(tripMap); tripMarkers.addTo(tripMap);
 
   try {
-    castles = await fetch('data/castles_enriched.json').then(r => r.json());
+    idx = await fetch('data/index.json').then(r => r.json());
   } catch (e) {
     $('stream').innerHTML = '<div class="empty" style="display:block"><p>Die Burgendaten konnten nicht geladen werden.</p></div>';
     return;
   }
-  populateFilters(computeFilters(castles));
+  populateFilters(computeFilters(idx));
   filterBrowse();
-  $('browse-sub').textContent = `${castles.length} Burgen aus der EBIDAT-Datenbank — mit Bildern, Geschichte und Anreise.`;
+  $('browse-sub').textContent = `${idx.length.toLocaleString('de-DE')} Burgen aus der EBIDAT-Datenbank — mit Bildern, Geschichte und Anreise.`;
   route();
 }
 
@@ -995,7 +1027,10 @@ $('reset-filters').addEventListener('click', () => {
 ['search', 'f-state', 'f-erhaltung', 'f-typ'].forEach(id =>
   $(id).addEventListener(id === 'search' ? 'input' : 'change', filterBrowse));
 
-// Click + keyboard activation for list entries (delegated)
+new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && $('view-browse').classList.contains('active')) renderMore();
+}, { rootMargin: '1200px' }).observe($('sentinel'));
+
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-id]');
   if (el && !e.target.closest('a')) openDetail(parseInt(el.dataset.id, 10));

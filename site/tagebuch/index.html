@@ -270,6 +270,7 @@ footer button:hover { color: var(--amber); }
 <script>
 'use strict';
 const STORE_KEY = 'burgen-tagebuch-v1';
+const IMG_PREFIX = 'https://www.ebidat.de/r30/vc_content/bilder/firma451/msvc_intern/';
 const CATS = [
   ['atmosphaere', 'Atmosphäre'],
   ['erhaltung', 'Erhaltung'],
@@ -295,9 +296,8 @@ function load() {
 function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(entries)); }
 
 function summarizeCastle(c) {
-  const m = c.meta || {};
-  return { id: c.id, name: c.name, state: m['Bundesland'] || '', kreis: m['Kreis'] || '',
-           image: (c.images && c.images.length) ? c.images[0].thumb : null };
+  return { id: c.id, name: c.n, state: c.s || '', kreis: c.k || '',
+           image: c.i ? (c.i.startsWith('http') ? c.i : IMG_PREFIX + c.i) : null };
 }
 
 /* ————— Sterne ————— */
@@ -401,7 +401,7 @@ function saveForm(ev) {
   const entry = {
     id: editId || (Date.now().toString(36) + Math.random().toString(36).slice(2, 7)),
     castleId: draft.castleId,
-    castleName: c ? c.name : '',
+    castleName: c ? c.n : '',
     date: $('date').value || todayISO(),
     ratings: draft.ratings,
     tags: draft.tags,
@@ -497,7 +497,7 @@ async function init() {
   load();
   render();  // Einträge sofort zeigen, auch bevor die Burgendaten da sind
   try {
-    castles = await fetch('../data/castles_enriched.json').then(r => r.json());
+    castles = await fetch('../data/index.json').then(r => r.json());
   } catch (e) { castles = []; }
   render();
 
